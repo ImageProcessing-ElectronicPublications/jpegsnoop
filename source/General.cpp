@@ -18,6 +18,8 @@
 
 #include "stdafx.h"
 
+#include "../main/WindowsClasses.h"
+
 // ---------------------------------------
 // Global functions
 // ---------------------------------------

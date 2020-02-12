@@ -1,5 +1,5 @@
-CC=g++-9
-CFLAGS=-c -g
+CC=g++
+CFLAGS=-c -zexecstack -fno-stack-protector -g -fpermissive
 # CFLAGS=-c -O3 -ferror-limit=11111
 
 main: JfifDecode.o DocLog.o main.o Md5.o WindowBuf.o DbSigs.o ImgDecode.o General.o
