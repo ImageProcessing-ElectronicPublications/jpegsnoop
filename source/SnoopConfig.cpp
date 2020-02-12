@@ -16,10 +16,12 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "StdAfx.h"
-#include ".\snoopconfig.h"
-#include "snoop.h"
-#include "Registry.h"
+// #include ""
+
+#include "stdafx.h"
+// #include ".\snoopconfig.h"
+// #include "snoop.h"
+// #include "Registry.h"
 
 //#include <shlobj.h>    // for SHGetFolderPath
 

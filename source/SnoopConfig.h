@@ -24,6 +24,7 @@
 //
 // ==========================================================================
 
+#include "../main/WindowsClasses.h"
 #include "snoop.h"	// For DEBUG_LOG_OUT
 
 #pragma once

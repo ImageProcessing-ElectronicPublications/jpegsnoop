@@ -22,7 +22,7 @@
 #include "snoop.h"
 #include <math.h>
 
-#include "JPEGsnoop.h"
+// #include "JPEGsnoop.h"
 
 
 // ------------------------------------------------------
@@ -76,22 +76,6 @@ void CimgDecode::Reset()
 	m_bAvgYValid = false;
 	m_nAvgY = 0;
 
-	// If a DIB has been generated, release it!
-	if (m_bDibTempReady) {
-		m_pDibTemp.Kill();
-		m_bDibTempReady = false;
-	}
-
-	if (m_bDibHistRgbReady) {
-		m_pDibHistRgb.Kill();
-		m_bDibHistRgbReady = false;
-	}
-
-	if (m_bDibHistYReady) {
-		m_pDibHistY.Kill();
-		m_bDibHistYReady = false;
-	}
-
 	if (m_pMcuFileMap) {
 		delete [] m_pMcuFileMap;
 		m_pMcuFileMap = NULL;
@@ -143,13 +127,6 @@ CimgDecode::CimgDecode(CDocLog* pLog, CwindowBuf* pWBuf)
 {
 	// Ideally this would be passed by constructor, but simply access
 	// directly for now.
-	CJPEGsnoopApp*	pApp;
-	pApp = (CJPEGsnoopApp*)AfxGetApp();
-    m_pAppConfig = pApp->m_pAppConfig;
-	ASSERT(m_pAppConfig);
-
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Begin"));
-
 	m_bVerbose = false;
 
 	ASSERT(pLog);
@@ -174,12 +151,9 @@ CimgDecode::CimgDecode(CDocLog* pLog, CwindowBuf* pWBuf)
 	m_pPixValCb = NULL;
 	m_pPixValCr = NULL;
 
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 1"));
-
 	// Reset the image decoding state
 	Reset();
 
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 2"));
 
 	m_nImgSizeXPartMcu = 0;
 	m_nImgSizeYPartMcu = 0;
@@ -202,10 +176,7 @@ CimgDecode::CimgDecode(CDocLog* pLog, CwindowBuf* pWBuf)
 	// Set up the IDCT lookup tables
 	PrecalcIdct();
 
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 3"));
-
 	GenLookupHuffMask();
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 4"));
 
 
 
@@ -213,24 +184,18 @@ CimgDecode::CimgDecode(CDocLog* pLog, CwindowBuf* pWBuf)
 	// the JFIF Decoder. We can only reset them here during
 	// the constructor and later by explicit call by JFIF Decoder.
 	ResetState();
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 5"));
 
 	// We don't call SetPreviewMode() here because it would
 	// automatically try to recalculate the view (but nothing ready yet)
 	m_nPreviewMode = PREVIEW_RGB;
 	SetPreviewZoom(false,false,true,PRV_ZOOM_12);
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 6"));
 
 	m_bViewOverlaysMcuGrid = false;
 
 	// Start off with no YCC offsets for CalcChannelPreview()
 	SetPreviewYccOffset(0,0,0,0,0);
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 7"));
 
 	SetPreviewMcuInsert(0,0,0);
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() Checkpoint 8"));
-
-	if (DEBUG_EN) m_pAppConfig->DebugLogAdd(_T("CimgDecode::CimgDecode() End"));
 }
 
 
@@ -312,7 +277,7 @@ void CimgDecode::ResetState()
 // POST:
 // - m_pStatBar
 //
-void CimgDecode::SetStatusBar(CStatusBar* pStatBar)
+void CimgDecode::SetStatusBar(void* pStatBar)
 {
 	m_pStatBar = pStatBar;
 }
@@ -330,9 +295,7 @@ void CimgDecode::SetStatusText(CString str)
 	// Make sure that we have been connected to the status
 	// bar of the main window first! Note that it is jpegsnoopDoc
 	// that sets this variable.
-	if (m_pStatBar) {
-		m_pStatBar->SetPaneText(0,str);
-	}
+	return;
 }
 
 // Clears the DQT entries
@@ -432,21 +395,10 @@ bool CimgDecode::SetDqtEntry(unsigned nTblDestId, unsigned nCoeffInd, unsigned n
 
 	} else {
 		// Should never get here!
-		CString strTmp;
+		CString strTmp;;
 		strTmp.Format(_T("ERROR: Attempt to set DQT entry out of range (nTblDestId=%u, nCoeffInd=%u, nCoeffVal=%u)"),
 			nTblDestId,nCoeffInd,nCoeffVal);
 
-#ifdef DEBUG_LOG
-		CString	strDebug;
-		strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-			_T("ImgDecode"),(LPCTSTR)strTmp);
-		OutputDebugString(strDebug);
-#else
-		ASSERT(false);
-#endif
-
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return false;
 	}
 	return true;
@@ -469,21 +421,10 @@ unsigned CimgDecode::GetDqtEntry(unsigned nTblDestId, unsigned nCoeffInd)
 		return m_anDqtCoeff[nTblDestId][nCoeffInd];
 	} else {
 		// Should never get here!
-		CString strTmp;
+		CString strTmp;;
 		strTmp.Format(_T("ERROR: GetDqtEntry(nTblDestId=%u, nCoeffInd=%u) out of indexed range"),
 			nTblDestId,nCoeffInd);
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
-
-#ifdef DEBUG_LOG
-		CString	strDebug;
-		strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-			_T("ImgDecode"),(LPCTSTR)strTmp);
-		OutputDebugString(strDebug);
-#else
-		ASSERT(false);
-#endif
 
 		return 0;
 	}
@@ -508,12 +449,10 @@ bool CimgDecode::SetDqtTables(unsigned nCompId, unsigned nTbl)
 		m_anDqtTblSel[nCompId] = (int)nTbl;
 	} else {
 		// Should never get here unless the JFIF SOF table has a bad entry!
-		CString strTmp;
+		CString strTmp;;
 		strTmp.Format(_T("ERROR: SetDqtTables(Comp ID=%u, Table=%u) out of indexed range"),
 			nCompId,nTbl);
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return false;
 	}
 	return true;
@@ -541,12 +480,10 @@ bool CimgDecode::SetDhtTables(unsigned nCompInd, unsigned nTblDc, unsigned nTblA
 		m_anDhtTblSel[DHT_CLASS_AC][nCompInd] = (int)nTblAc;
 	} else {
 		// Should never get here!
-		CString strTmp;
+		CString strTmp;;
 		strTmp.Format(_T("ERROR: SetDhtTables(comp=%u, TblDC=%u TblAC=%u) out of indexed range"),
 			nCompInd,nTblDc,nTblAc);
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return false;
 	}
 	return true;
@@ -751,16 +688,7 @@ bool CimgDecode::SetDhtEntry(unsigned nDestId, unsigned nClass, unsigned nInd, u
 	if ( (nDestId >= MAX_DHT_DEST_ID) || (nClass >= MAX_DHT_CLASS) || (nInd >= MAX_DHT_CODES) ) {
 		CString strTmp = _T("ERROR: Attempt to set DHT entry out of range");
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
-#ifdef DEBUG_LOG
-		CString	strDebug;
-		strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-			_T("ImgDecode"),(LPCTSTR)strTmp);
-		OutputDebugString(strDebug);
-#else
-		ASSERT(false);
-#endif
+
 		return false;
 	}
 	m_anDhtLookup_bitlen[nClass][nDestId][nInd] = nLen;
@@ -836,8 +764,6 @@ bool CimgDecode::SetDhtSize(unsigned nDestId,unsigned nClass,unsigned nSize)
 	if ( (nDestId >= MAX_DHT_DEST_ID) || (nClass >= MAX_DHT_CLASS) || (nSize >= MAX_DHT_CODES) ) {
 		CString strTmp = _T("ERROR: Attempt to set DHT table size out of range");
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return false;
 	} else {
 		m_anDhtLookupSize[nClass][nDestId] = nSize;
@@ -1098,8 +1024,8 @@ teRsvRet CimgDecode::ReadScanVal(unsigned nClass,unsigned nTbl,unsigned &rZrl,si
 		// Trying to overread end of scan segment
 
 		if (m_nWarnBadScanNum < m_nScanErrMax) {
-			CString strTmp;
-			strTmp.Format(_T("*** ERROR: Overread scan segment (before nCode)! @ Offset: %s"),(LPCTSTR)GetScanBufPos());
+			CString strTmp;;
+			strTmp.Format(_T("*** ERROR: Overread scan segment (before nCode)! @ Offset: %s"),(LPCTSTR)GetScanBufPos().GetString());
 			m_pLog->AddLineErr(strTmp);
 
 			m_nWarnBadScanNum++;
@@ -1200,8 +1126,8 @@ teRsvRet CimgDecode::ReadScanVal(unsigned nClass,unsigned nTbl,unsigned &rZrl,si
 	// Did we overread the scan buffer?
 	if (m_nScanBuff_vacant > 32) {
 		// The nCode consumed more bits than we had!
-		CString strTmp;
-		strTmp.Format(_T("*** ERROR: Overread scan segment (after nCode)! @ Offset: %s"),(LPCTSTR)GetScanBufPos());
+		CString strTmp;;
+		strTmp.Format(_T("*** ERROR: Overread scan segment (after nCode)! @ Offset: %s"),(LPCTSTR)GetScanBufPos().GetString());
 		m_pLog->AddLineErr(strTmp);
 		m_bScanEnd = true;
 		m_bScanBad = true;
@@ -1244,8 +1170,8 @@ teRsvRet CimgDecode::ReadScanVal(unsigned nClass,unsigned nTbl,unsigned &rZrl,si
 			// Did we overread the scan buffer?
 			if (m_nScanBuff_vacant > 32) {
 				// The nCode consumed more bits than we had!
-				CString strTmp;
-				strTmp.Format(_T("*** ERROR: Overread scan segment (after bitstring)! @ Offset: %s"),(LPCTSTR)GetScanBufPos());
+				CString strTmp;;
+				strTmp.Format(_T("*** ERROR: Overread scan segment (after bitstring)! @ Offset: %s"),(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineErr(strTmp);
 				m_bScanEnd = true;
 				m_bScanBad = true;
@@ -1265,8 +1191,8 @@ teRsvRet CimgDecode::ReadScanVal(unsigned nClass,unsigned nTbl,unsigned &rZrl,si
 		// again.
 
 		if (m_nWarnBadScanNum < m_nScanErrMax) {
-			CString strTmp;
-			strTmp.Format(_T("*** ERROR: Can't find huffman bitstring @ %s, table %u, value [0x%08x]"),(LPCTSTR)GetScanBufPos(),nTbl,m_nScanBuff);
+			CString strTmp;;
+			strTmp.Format(_T("*** ERROR: Can't find huffman bitstring @ %s, table %u, value [0x%08x]"),(LPCTSTR)GetScanBufPos().GetString(),nTbl,m_nScanBuff);
 			m_pLog->AddLineErr(strTmp);
 
 			m_nWarnBadScanNum++;
@@ -1347,7 +1273,7 @@ bool CimgDecode::ExpectRestart()
 		if ((nMarker >= JFIF_RST0) && (nMarker <= JFIF_RST7)) {
 
 			if (m_bVerbose) {
-	  		  CString strTmp;
+	  		  CString strTmp;;
 			  strTmp.Format(_T("  RESTART marker: @ 0x%08X.0 : RST%02u"),
 				m_nScanBuffPtr,nMarker-JFIF_RST0);
 			  m_pLog->AddLine(strTmp);
@@ -1405,7 +1331,7 @@ unsigned CimgDecode::BuffAddByte()
 		if ((nMarker >= JFIF_RST0) && (nMarker <= JFIF_RST7)) {
 
 			if (m_bVerbose) {
-	  		  CString strTmp;
+	  		  CString strTmp;;
 			  strTmp.Format(_T("  RESTART marker: @ 0x%08X.0 : RST%02u"),
 				m_nScanBuffPtr,nMarker-JFIF_RST0);
 			  m_pLog->AddLine(strTmp);
@@ -1415,7 +1341,7 @@ unsigned CimgDecode::BuffAddByte()
 			m_nRestartLastInd = nMarker - JFIF_RST0;
 			if (m_nRestartLastInd != m_nRestartExpectInd) {
 				if (!m_bScanErrorsDisable) {
-	  				CString strTmp;
+	  				CString strTmp;;
 					strTmp.Format(_T("  ERROR: Expected RST marker index RST%u got RST%u @ 0x%08X.0"),
 						m_nRestartExpectInd,m_nRestartLastInd,m_nScanBuffPtr);
 					m_pLog->AddLineErr(strTmp);
@@ -1498,7 +1424,7 @@ unsigned CimgDecode::BuffAddByte()
 
 		/*
 		if (m_nWarnBadScanNum < m_nScanErrMax) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  Scan Data encountered sequence 0xFFFF @ 0x%08X.0 - Assume start of marker pad at end of scan segment"),
 				m_nScanBuffPtr);
 			m_pLog->AddLineWarn(strTmp);
@@ -1532,7 +1458,7 @@ unsigned CimgDecode::BuffAddByte()
 		// and mark the end of the scan segment.
 
 		if (m_nWarnBadScanNum < m_nScanErrMax) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  Scan Data encountered marker   0xFF%02X @ 0x%08X.0"),
 				nMarker,m_nScanBuffPtr);
 			m_pLog->AddLine(strTmp);
@@ -1689,8 +1615,8 @@ bool CimgDecode::DecodeScanComp(unsigned nTblDhtDc,unsigned nTblDhtAc,unsigned n
 
 			if (m_nWarnBadScanNum < m_nScanErrMax) {
 				CString strPos = GetScanBufPos(nSavedBufPos,nSavedBufAlign);
-				CString strTmp;
-				strTmp.Format(_T("*** ERROR: Bad marker @ %s"),(LPCTSTR)strPos);
+				CString strTmp;;
+				strTmp.Format(_T("*** ERROR: Bad marker @ %s"),(LPCTSTR)strPos.GetString());
 				m_pLog->AddLineErr(strTmp);
 
 				m_nWarnBadScanNum++;
@@ -1739,8 +1665,8 @@ bool CimgDecode::DecodeScanComp(unsigned nTblDhtDc,unsigned nTblDhtAc,unsigned n
 
 			if (m_nWarnBadScanNum < m_nScanErrMax) {
 				CString strPos = GetScanBufPos(nSavedBufPos,nSavedBufAlign);
-				CString strTmp;
-				strTmp.Format(_T("*** ERROR: Bad huffman code @ %s"),(LPCTSTR)strPos);
+				CString strTmp;;
+				strTmp.Format(_T("*** ERROR: Bad huffman code @ %s"),(LPCTSTR)strPos.GetString());
 				m_pLog->AddLineErr(strTmp);
 
 				m_nWarnBadScanNum++;
@@ -1777,9 +1703,9 @@ bool CimgDecode::DecodeScanComp(unsigned nTblDhtDc,unsigned nTblDhtAc,unsigned n
 			// ERROR
 
 			if (m_nWarnBadScanNum < m_nScanErrMax) {
-				CString strTmp;
+				CString strTmp;;
 				CString strPos = GetScanBufPos(nSavedBufPos,nSavedBufAlign);
-				strTmp.Format(_T("*** ERROR: @ %s, nNumCoeffs>64 [%u]"),(LPCTSTR)strPos,nNumCoeffs);
+				strTmp.Format(_T("*** ERROR: @ %s, nNumCoeffs>64 [%u]"),(LPCTSTR)strPos.GetString(),nNumCoeffs);
 				m_pLog->AddLineErr(strTmp);
 
 				m_nWarnBadScanNum++;
@@ -1885,7 +1811,7 @@ bool CimgDecode::DecodeScanCompPrint(unsigned nTblDhtDc,unsigned nTblDhtAc,unsig
 				strTbl = _T("???");
 				break;
 		}
-		strTmp.Format(_T("    %s (Tbl #%u), MCU=[%u,%u]"),(LPCTSTR)strTbl,nTblDqt,nMcuX,nMcuY);
+		strTmp.Format(_T("    %s (Tbl #%u), MCU=[%u,%u]"),(LPCTSTR)strTbl.GetString(),nTblDqt,nMcuX,nMcuY);
 		m_pLog->AddLine(strTmp);
 	}
 
@@ -1963,7 +1889,7 @@ bool CimgDecode::DecodeScanCompPrint(unsigned nTblDhtDc,unsigned nTblDhtAc,unsig
 
 			if (m_nWarnBadScanNum < m_nScanErrMax) {
 				strPos = GetScanBufPos(nSavedBufPos,nSavedBufAlign);
-				strTmp.Format(_T("*** ERROR: Bad marker @ %s"),(LPCTSTR)strPos);
+				strTmp.Format(_T("*** ERROR: Bad marker @ %s"),(LPCTSTR)strPos.GetString());
 				m_pLog->AddLineErr(strTmp);
 
 				m_nWarnBadScanNum++;
@@ -2013,7 +1939,7 @@ bool CimgDecode::DecodeScanCompPrint(unsigned nTblDhtDc,unsigned nTblDhtAc,unsig
 				strSpecial = _T("ERROR");
 				strPos = GetScanBufPos(nSavedBufPos,nSavedBufAlign);
 
-				strTmp.Format(_T("*** ERROR: Bad huffman code @ %s"),(LPCTSTR)strPos);
+				strTmp.Format(_T("*** ERROR: Bad huffman code @ %s"),(LPCTSTR)strPos.GetString());
 				m_pLog->AddLineErr(strTmp);
 
 				m_nWarnBadScanNum++;
@@ -2050,7 +1976,7 @@ bool CimgDecode::DecodeScanCompPrint(unsigned nTblDhtDc,unsigned nTblDhtAc,unsig
 
 			if (m_nWarnBadScanNum < m_nScanErrMax) {
 				strPos = GetScanBufPos(nSavedBufPos,nSavedBufAlign);
-				strTmp.Format(_T("*** ERROR: @ %s, nNumCoeffs>64 [%u]"),(LPCTSTR)strPos,nNumCoeffs);
+				strTmp.Format(_T("*** ERROR: @ %s, nNumCoeffs>64 [%u]"),(LPCTSTR)strPos.GetString(),nNumCoeffs);
 				m_pLog->AddLineErr(strTmp);
 
 				m_nWarnBadScanNum++;
@@ -2117,13 +2043,13 @@ void CimgDecode::ReportDctMatrix()
 			strTmp = _T("");
 			nCoefVal = m_anDctBlock[nY*8+nX];
 			strTmp.Format(_T("%5d"),nCoefVal);
-			strLine.Append(strTmp);
+			strLine.append(strTmp);
 
 			if (nX != 7) {
-				strLine.Append(_T(" "));
+				strLine.append(_T(" "));
 			}
 		}
-		strLine.Append(_T("]"));
+		strLine.append(_T("]"));
 		m_pLog->AddLine(strLine);
 	}
 	m_pLog->AddLine(_T(""));
@@ -2218,14 +2144,14 @@ void CimgDecode::ReportVlc(unsigned nVlcPos, unsigned nVlcAlign,
 
 	strData.Format(_T("0x %02X %02X %02X %02X = 0b (%s)"),
 		nBufByte[0],nBufByte[1],nBufByte[2],nBufByte[3],
-		(LPCTSTR)strBinMarked);
+		(LPCTSTR)strBinMarked.GetString());
 
 	if ((nCoeffStart == 0) && (nCoeffEnd == 0)) {
 		strTmp.Format(_T("      [%s]: ZRL=[%2u] Val=[%5d] Coef=[%02u= DC] Data=[%s] %s"),
-			(LPCTSTR)strPos,nZrl,nVal,nCoeffStart,(LPCTSTR)strData,(LPCTSTR)specialStr);
+			(LPCTSTR)strPos.GetString(),nZrl,nVal,nCoeffStart,(LPCTSTR)strData.GetString(),(LPCTSTR)specialStr.GetString());
 	} else {
 		strTmp.Format(_T("      [%s]: ZRL=[%2u] Val=[%5d] Coef=[%02u..%02u] Data=[%s] %s"),
-			(LPCTSTR)strPos,nZrl,nVal,nCoeffStart,nCoeffEnd,(LPCTSTR)strData,(LPCTSTR)specialStr);
+			(LPCTSTR)strPos.GetString(),nZrl,nVal,nCoeffStart,nCoeffEnd,(LPCTSTR)strData.GetString(),(LPCTSTR)specialStr.GetString());
 	}
 	m_pLog->AddLine(strTmp);
 
@@ -2476,16 +2402,7 @@ void CimgDecode::SetFullRes(unsigned nMcuX,unsigned nMcuY,unsigned nComp,unsigne
 	// Component index is direct from SOF/SOS
 	// Channel index is used for internal display representation
 	if (nComp <= 0) {
-#ifdef DEBUG_LOG
-		CString	strTmp;
-		CString	strDebug;
-		strTmp.Format(_T("SetFullRes() with nComp <= 0 [%d]"),nComp);
-		strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-			_T("ImgDecode"),(LPCTSTR)strTmp);
-		OutputDebugString(strDebug);
-#else
-		ASSERT(false);
-#endif
+
 		return;
 	}
 	nChan = nComp - 1;
@@ -2587,7 +2504,7 @@ CString CimgDecode::GetScanBufPos()
 //
 CString CimgDecode::GetScanBufPos(unsigned pos, unsigned align)
 {
-	CString strTmp;
+	CString strTmp;;
 	strTmp.Format(_T("0x%08X.%u"),pos,align);
 	return strTmp;
 }
@@ -2634,7 +2551,7 @@ void CimgDecode::CheckScanErrors(unsigned nMcuX,unsigned nMcuY,unsigned nCssIndH
 
 		if (m_nWarnBadScanNum < m_nScanErrMax) {
 
-			errStr.Format(_T("*** ERROR: Bad scan data in MCU(%u,%u): %s @ Offset %s"),nMcuX,nMcuY,(LPCTSTR)strTmp,(LPCTSTR)GetScanBufPos());
+			errStr.Format(_T("*** ERROR: Bad scan data in MCU(%u,%u): %s @ Offset %s"),nMcuX,nMcuY,(LPCTSTR)strTmp.GetString(),(LPCTSTR)GetScanBufPos().GetString());
 			m_pLog->AddLineErr(errStr);
 			errStr.Format(_T("           MCU located at pixel=(%u,%u)"),err_pos_x,err_pos_y);
 			m_pLog->AddLineErr(errStr);
@@ -2672,7 +2589,7 @@ void CimgDecode::PrintDcCumVal(unsigned nMcuX,unsigned nMcuY,int nVal)
 {
 	nMcuX;	// Unreferenced param
 	nMcuY;	// Unreferenced param
-	CString strTmp;
+	CString strTmp;;
 //	strTmp.Format(_T("  MCU [%4u,%4u] DC Cumulative Val = [%5d]"),nMcuX,nMcuY,nVal);
 	strTmp.Format(_T("                 Cumulative DC Val=[%5d]"),nVal);
 	m_pLog->AddLine(strTmp);
@@ -2727,18 +2644,18 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 
 
 	// Fetch configuration values locally
-	bool		bDumpHistoY		= m_pAppConfig->bDumpHistoY;
+	bool		bDumpHistoY		= false;
 	bool		bDecodeScanAc;
-	unsigned	nScanErrMax		= m_pAppConfig->nErrMaxDecodeScan;
+	unsigned	nScanErrMax		= 0;
 
 	// Add some extra speed-up in hidden mode (we don't need AC)
-	if (bDisplay) {
-		bDecodeScanAc = m_pAppConfig->bDecodeScanImgAc;
-	} else {
+	// if (bDisplay) {
+	// 	bDecodeScanAc = adsfs->bDecodeScanImgAc;
+	// } else {
 		bDecodeScanAc = false;
-	}
-	m_bHistEn		= m_pAppConfig->bHistoEn;
-	m_bStatClipEn	= m_pAppConfig->bStatClipEn;
+	// }
+	m_bHistEn		= false;
+	m_bStatClipEn	= false;
 
 
 	unsigned	nPixMapW = 0;
@@ -2893,8 +2810,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 	if (!m_pMcuFileMap) {
 		strTmp = _T("ERROR: Not enough memory for Image Decoder MCU File Pos Map");
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return;
 	}
 	memset(m_pMcuFileMap, 0, (m_nMcuYMax*m_nMcuXMax*sizeof(unsigned)) );
@@ -2905,8 +2820,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 	if ( (!m_pBlkDcValY) ) {
 		strTmp = _T("ERROR: Not enough memory for Image Decoder Blk DC Value Map");
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return;
 	}
 	if (m_nNumSosComps == NUM_CHAN_YCC) {
@@ -2915,8 +2828,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 		if ( (!m_pBlkDcValCb) || (!m_pBlkDcValCr) ) {
 			strTmp = _T("ERROR: Not enough memory for Image Decoder Blk DC Value Map");
 			m_pLog->AddLineErr(strTmp);
-			if (m_pAppConfig->bInteractive)
-				AfxMessageBox(strTmp);
 			return;
 		}
 	}
@@ -2944,8 +2855,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 	if ( (!m_pPixValY) ) {
 		strTmp = _T("ERROR: Not enough memory for Image Decoder Pixel YCC Value Map");
 		m_pLog->AddLineErr(strTmp);
-		if (m_pAppConfig->bInteractive)
-			AfxMessageBox(strTmp);
 		return;
 	}
 	if (m_nNumSosComps == NUM_CHAN_YCC) {
@@ -2954,8 +2863,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 		if ( (!m_pPixValCb) || (!m_pPixValCr) ) {
 			strTmp = _T("ERROR: Not enough memory for Image Decoder Pixel YCC Value Map");
 			m_pLog->AddLineErr(strTmp);
-			if (m_pAppConfig->bInteractive)
-				AfxMessageBox(strTmp);
 			return;
 		}
 	}
@@ -2973,7 +2880,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 	unsigned			nDibImgRowBytes;
 
 	// If a previous bitmap was created, deallocate it and start fresh
-	m_pDibTemp.Kill();
 	m_bDibTempReady = false;
 	m_bPreviewIsJpeg = false;
 
@@ -2983,20 +2889,7 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 
 	bool bDoImage = false;	// Are we safe to set bits?
 
-	if (bDisplay) {
-		m_pDibTemp.CreateDIB(m_nImgSizeX,m_nImgSizeY,32);
-		nDibImgRowBytes = m_nImgSizeX * sizeof(RGBQUAD);
-		pDibImgTmpBits = (unsigned char*) ( m_pDibTemp.GetDIBBitArray() );
-
-		if (pDibImgTmpBits) {
-			bDoImage = true;
-		} else {
-			// TODO: Should we be exiting here instead?
-		}
-
-	}
 	// -------------------------------------
-
 
 	CString picStr;
 
@@ -3193,7 +3086,7 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 					}
 					*/
 				} else {
-					strTmp.Format(_T("  Expect Restart interval elapsed @ %s"),(LPCTSTR)GetScanBufPos());
+					strTmp.Format(_T("  Expect Restart interval elapsed @ %s"),(LPCTSTR)GetScanBufPos().GetString());
 					m_pLog->AddLine(strTmp);
 						strTmp.Format(_T("    ERROR: Restart marker not detected"));
 						m_pLog->AddLineErr(strTmp);
@@ -3541,15 +3434,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 					nBlkXY = nBlkCornerMcuLinear + (nCssIndV * m_nBlkXMax) + nCssIndH;
 					// FIXME: Temporarily catch any range issue
 					if (nBlkXY >= m_nBlkXMax*m_nBlkYMax) {
-#ifdef DEBUG_LOG
-					CString	strDebug;
-					strTmp.Format(_T("DecodeScanImg() with nBlkXY out of range. nBlkXY=[%u] m_nBlkXMax=[%u] m_nBlkYMax=[%u]"),nBlkXY,m_nBlkXMax,m_nBlkYMax);
-					strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-						_T("ImgDecode"),(LPCTSTR)strTmp);
-					OutputDebugString(strDebug);
-#else
-					ASSERT(false);
-#endif
 					} else {
 						m_pBlkDcValY [nBlkXY] = m_anDcLumCss[nCssIndV*MAX_SAMP_FACT_H+nCssIndH];
 					}
@@ -3567,15 +3451,6 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 						nBlkXY = (nMcuY*m_anExpandBitsMcuV[nComp] + nCssIndV)*m_nBlkXMax + (nMcuX*m_anExpandBitsMcuH[nComp] + nCssIndH);
 						// FIXME: Temporarily catch any range issue
 						if (nBlkXY >= m_nBlkXMax*m_nBlkYMax) {
-#ifdef DEBUG_LOG
-							CString	strDebug;
-							strTmp.Format(_T("DecodeScanImg() with nBlkXY out of range. nBlkXY=[%u] m_nBlkXMax=[%u] m_nBlkYMax=[%u]"),nBlkXY,m_nBlkXMax,m_nBlkYMax);
-							strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-								_T("ImgDecode"),(LPCTSTR)strTmp);
-							OutputDebugString(strDebug);
-#else
-							ASSERT(false);
-#endif
 						} else {
 							m_pBlkDcValCb [nBlkXY] = m_anDcChrCbCss[nCssIndV*MAX_SAMP_FACT_H+nCssIndH];
 						}
@@ -3591,15 +3466,7 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 						nBlkXY = (nMcuY*m_anExpandBitsMcuV[nComp] + nCssIndV)*m_nBlkXMax + (nMcuX*m_anExpandBitsMcuH[nComp] + nCssIndH);
 						// FIXME: Temporarily catch any range issue
 						if (nBlkXY >= m_nBlkXMax*m_nBlkYMax) {
-#ifdef DEBUG_LOG
-							CString	strDebug;
-							strTmp.Format(_T("DecodeScanImg() with nBlkXY out of range. nBlkXY=[%u] m_nBlkXMax=[%u] m_nBlkYMax=[%u]"),nBlkXY,m_nBlkXMax,m_nBlkYMax);
-							strDebug.Format(_T("## File=[%-100s] Block=[%-10s] Error=[%s]\n"),(LPCTSTR)m_pAppConfig->strCurFname,
-								_T("ImgDecode"),(LPCTSTR)strTmp);
-							OutputDebugString(strDebug);
-#else
-							ASSERT(false);
-#endif
+
 						} else {
 							m_pBlkDcValCr [nBlkXY] = m_anDcChrCrCss[nCssIndV*MAX_SAMP_FACT_H+nCssIndH];
 						}
@@ -3726,7 +3593,7 @@ void CimgDecode::DecodeScanImg(unsigned nStart,bool bDisplay,bool bQuiet)
 		m_pLog->AddLine(_T("  Finished Decoding SCAN Data"));
 		strTmp.Format(_T("    Number of RESTART markers decoded: %u"),m_nRestartRead);
 		m_pLog->AddLine(strTmp);
-		strTmp.Format(_T("    Next position in scan buffer: Offset %s"),(LPCTSTR)GetScanBufPos());
+		strTmp.Format(_T("    Next position in scan buffer: Offset %s"),(LPCTSTR)GetScanBufPos().GetString());
 		m_pLog->AddLine(strTmp);
 
 		m_pLog->AddLine(_T(""));
@@ -3844,8 +3711,8 @@ void CimgDecode::ReportColorStats()
 //
 void CimgDecode::ReportHistogramY()
 {
-	CString		strFull;
-	CString		strTmp;
+	CString strFull;
+	CString strTmp;;
 
 	m_pLog->AddLine(_T("  Y Histogram in DC: (DCT sums) Full"));
 	for (unsigned row=0;row<2048/8;row++) {
@@ -3869,145 +3736,7 @@ void CimgDecode::ReportHistogramY()
 //
 void CimgDecode::DrawHistogram(bool bQuiet,bool bDumpHistoY)
 {
-	CString		strTmp;
-
-	if (!bQuiet) {
-		strTmp.Format(_T("  RGB histogram in DC (after clip):"));
-		m_pLog->AddLine(strTmp);
-		strTmp.Format(_T("    R  component histo: [min=%5d max=%5d avg=%7.1f]"),
-			m_sHisto.nClipRMin,m_sHisto.nClipRMax,(float)m_sHisto.nClipRSum / (float)m_sHisto.nCount);
-		m_pLog->AddLine(strTmp);
-		strTmp.Format(_T("    G  component histo: [min=%5d max=%5d avg=%7.1f]"),
-			m_sHisto.nClipGMin,m_sHisto.nClipGMax,(float)m_sHisto.nClipGSum / (float)m_sHisto.nCount);
-		m_pLog->AddLine(strTmp);
-		strTmp.Format(_T("    B  component histo: [min=%5d max=%5d avg=%7.1f]"),
-			m_sHisto.nClipBMin,m_sHisto.nClipBMax,(float)m_sHisto.nClipBSum / (float)m_sHisto.nCount);
-		m_pLog->AddLine(strTmp);
-		m_pLog->AddLine(_T(""));
-	}
-
-	// --------------------------------------
-	// Now draw the RGB histogram!
-
-	unsigned		nCoordY;
-	unsigned		nHistoBinHeight;
-	unsigned		nHistoPeakVal;
-	unsigned		nHistoX;
-	unsigned		nHistoCurVal;
-	unsigned		nDibHistoRowBytes;
-	unsigned char*	pDibHistoBits;
-
-	m_pDibHistRgb.Kill();
-	m_bDibHistRgbReady = false;
-
-	m_pDibHistRgb.CreateDIB(HISTO_BINS*HISTO_BIN_WIDTH,3*HISTO_BIN_HEIGHT_MAX,32);
-	nDibHistoRowBytes = (HISTO_BINS*HISTO_BIN_WIDTH) * 4;
-	pDibHistoBits = (unsigned char*) ( m_pDibHistRgb.GetDIBBitArray() );
-
-	m_rectHistBase = CRect(CPoint(0,0),CSize(HISTO_BINS*HISTO_BIN_WIDTH,3*HISTO_BIN_HEIGHT_MAX));
-
-	if (pDibHistoBits != NULL) {
-		memset(pDibHistoBits,0,3*HISTO_BIN_HEIGHT_MAX*nDibHistoRowBytes);
-
-		// Do peak detect first
-		// Don't want to reset peak value to 0 as otherwise we might get
-		// division by zero later when we calculate nHistoBinHeight
-		nHistoPeakVal = 1;
-
-		// Peak value is across all three channels!
-		for (unsigned nHistChan=0;nHistChan<3;nHistChan++) {
-
-			for (unsigned i=0;i<HISTO_BINS;i++) {
-				if      (nHistChan == 0) {nHistoCurVal = m_anCcHisto_r[i];}
-				else if (nHistChan == 1) {nHistoCurVal = m_anCcHisto_g[i];}
-				else                     {nHistoCurVal = m_anCcHisto_b[i];}
-				nHistoPeakVal = (nHistoCurVal > nHistoPeakVal)?nHistoCurVal:nHistoPeakVal;
-			}
-		}
-
-		for (unsigned nHistChan=0;nHistChan<3;nHistChan++) {
-			for (unsigned i=0;i<HISTO_BINS;i++) {
-
-				// Calculate bin's height (max HISTO_BIN_HEIGHT_MAX)
-				if      (nHistChan == 0) {nHistoCurVal = m_anCcHisto_r[i];}
-				else if (nHistChan == 1) {nHistoCurVal = m_anCcHisto_g[i];}
-				else                     {nHistoCurVal = m_anCcHisto_b[i];}
-				nHistoBinHeight = HISTO_BIN_HEIGHT_MAX*nHistoCurVal/nHistoPeakVal;
-
-				for (unsigned y=0;y<nHistoBinHeight;y++) {
-					// Store the RGB triplet
-					for (unsigned bin_width=0;bin_width<HISTO_BIN_WIDTH;bin_width++) {
-						nHistoX = (i*HISTO_BIN_WIDTH)+bin_width;
-						nCoordY = ((2-nHistChan) * HISTO_BIN_HEIGHT_MAX) + y;
-						pDibHistoBits[(nHistoX*4)+3+(nCoordY*nDibHistoRowBytes)] = 0;
-						pDibHistoBits[(nHistoX*4)+2+(nCoordY*nDibHistoRowBytes)] = (nHistChan==0)?255:0;
-						pDibHistoBits[(nHistoX*4)+1+(nCoordY*nDibHistoRowBytes)] = (nHistChan==1)?255:0;
-						pDibHistoBits[(nHistoX*4)+0+(nCoordY*nDibHistoRowBytes)] = (nHistChan==2)?255:0;
-					}
-				}
-			} // i: 0..HISTO_BINS-1
-
-		} // nHistChan
-
-		m_bDibHistRgbReady = true;
-	}
-
-	// Only create the Y DC Histogram if requested
-	m_bDibHistYReady = false;
-	if (bDumpHistoY) {
-
-		m_pDibHistY.Kill();
-
-		m_pDibHistY.CreateDIB(SUBSET_HISTO_BINS*HISTO_BIN_WIDTH,HISTO_BIN_HEIGHT_MAX,32);
-		nDibHistoRowBytes = (SUBSET_HISTO_BINS*HISTO_BIN_WIDTH) * 4;
-		pDibHistoBits = (unsigned char*) ( m_pDibHistY.GetDIBBitArray() );
-
-		m_rectHistYBase = CRect(CPoint(0,0),CSize(SUBSET_HISTO_BINS*HISTO_BIN_WIDTH,HISTO_BIN_HEIGHT_MAX));
-
-		if (pDibHistoBits != NULL) {
-			memset(pDibHistoBits,0,HISTO_BIN_HEIGHT_MAX*nDibHistoRowBytes);
-
-			// Do peak detect first
-			// Don't want to reset peak value to 0 as otherwise we might get
-			// division by zero later when we calculate nHistoBinHeight
-			nHistoPeakVal = 1;
-
-			// TODO: Temporarily made quarter width - need to resample instead
-
-			// Peak value
-			for (unsigned i=0;i<SUBSET_HISTO_BINS;i++) {
-				nHistoCurVal  = m_anHistoYFull[i*4+0];
-				nHistoCurVal += m_anHistoYFull[i*4+1];
-				nHistoCurVal += m_anHistoYFull[i*4+2];
-				nHistoCurVal += m_anHistoYFull[i*4+3];
-				nHistoPeakVal = (nHistoCurVal > nHistoPeakVal)?nHistoCurVal:nHistoPeakVal;
-			}
-
-			for (unsigned i=0;i<SUBSET_HISTO_BINS;i++) {
-
-				// Calculate bin's height (max HISTO_BIN_HEIGHT_MAX)
-				nHistoCurVal  = m_anHistoYFull[i*4+0];
-				nHistoCurVal += m_anHistoYFull[i*4+1];
-				nHistoCurVal += m_anHistoYFull[i*4+2];
-				nHistoCurVal += m_anHistoYFull[i*4+3];
-				nHistoBinHeight = HISTO_BIN_HEIGHT_MAX*nHistoCurVal/nHistoPeakVal;
-
-				for (unsigned y=0;y<nHistoBinHeight;y++) {
-					// Store the RGB triplet
-					for (unsigned bin_width=0;bin_width<HISTO_BIN_WIDTH;bin_width++) {
-						nHistoX = (i*HISTO_BIN_WIDTH)+bin_width;
-						nCoordY = y;
-						pDibHistoBits[(nHistoX*4)+3+(nCoordY*nDibHistoRowBytes)] = 0;
-						pDibHistoBits[(nHistoX*4)+2+(nCoordY*nDibHistoRowBytes)] = 255;
-						pDibHistoBits[(nHistoX*4)+1+(nCoordY*nDibHistoRowBytes)] = 255;
-						pDibHistoBits[(nHistoX*4)+0+(nCoordY*nDibHistoRowBytes)] = 0;
-					}
-				}
-			} // i: 0..HISTO_BINS-1
-			m_bDibHistYReady = true;
-
-		}
-	} // bDumpHistoY
+	return;
 
 }
 
@@ -4370,9 +4099,9 @@ void CimgDecode::CapYccRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 
 		if (nCurY > CC_CLIP_YCC_MAX) {
 			if (YCC_CLIP_REPORT_ERR && (m_nWarnYccClipNum < YCC_CLIP_REPORT_MAX)) {
-				CString strTmp;
+				CString strTmp;;
 				strTmp.Format(_T("*** NOTE: YCC Clipped. MCU=(%4u,%4u) YCC=(%5d,%5d,%5d) Y Overflow @ Offset %s"),
-					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos());
+					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineWarn(strTmp);
 				m_nWarnYccClipNum++;
 				m_sStatClip.nClipYOver++;
@@ -4386,9 +4115,9 @@ void CimgDecode::CapYccRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 		}
 		if (nCurY < CC_CLIP_YCC_MIN) {
 			if (YCC_CLIP_REPORT_ERR && (m_nWarnYccClipNum < YCC_CLIP_REPORT_MAX)) {
-				CString strTmp;
+				CString strTmp;;
 				strTmp.Format(_T("*** NOTE: YCC Clipped. MCU=(%4u,%4u) YCC=(%5d,%5d,%5d) Y Underflow @ Offset %s"),
-					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos());
+					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineWarn(strTmp);
 				m_nWarnYccClipNum++;
 				m_sStatClip.nClipYUnder++;
@@ -4402,9 +4131,9 @@ void CimgDecode::CapYccRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 		}
 		if (nCurCb > CC_CLIP_YCC_MAX) {
 			if (YCC_CLIP_REPORT_ERR && (m_nWarnYccClipNum < YCC_CLIP_REPORT_MAX)) {
-				CString strTmp;
+				CString strTmp;;
 				strTmp.Format(_T("*** NOTE: YCC Clipped. MCU=(%4u,%4u) YCC=(%5d,%5d,%5d) Cb Overflow @ Offset %s"),
-					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos());
+					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineWarn(strTmp);
 				m_nWarnYccClipNum++;
 				m_sStatClip.nClipCbOver++;
@@ -4418,9 +4147,9 @@ void CimgDecode::CapYccRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 		}
 		if (nCurCb < CC_CLIP_YCC_MIN) {
 			if (YCC_CLIP_REPORT_ERR && (m_nWarnYccClipNum < YCC_CLIP_REPORT_MAX)) {
-				CString strTmp;
+				CString strTmp;;
 				strTmp.Format(_T("*** NOTE: YCC Clipped. MCU=(%4u,%4u) YCC=(%5d,%5d,%5d) Cb Underflow @ Offset %s"),
-					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos());
+					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineWarn(strTmp);
 				m_nWarnYccClipNum++;
 				m_sStatClip.nClipCbUnder++;
@@ -4434,9 +4163,9 @@ void CimgDecode::CapYccRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 		}
 		if (nCurCr > CC_CLIP_YCC_MAX) {
 			if (YCC_CLIP_REPORT_ERR && (m_nWarnYccClipNum < YCC_CLIP_REPORT_MAX)) {
-				CString strTmp;
+				CString strTmp;;
 				strTmp.Format(_T("*** NOTE: YCC Clipped. MCU=(%4u,%4u) YCC=(%5d,%5d,%5d) Cr Overflow @ Offset %s"),
-					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos());
+					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineWarn(strTmp);
 				m_nWarnYccClipNum++;
 				m_sStatClip.nClipCrOver++;
@@ -4450,9 +4179,9 @@ void CimgDecode::CapYccRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 		}
 		if (nCurCr < CC_CLIP_YCC_MIN) {
 			if (YCC_CLIP_REPORT_ERR && (m_nWarnYccClipNum < YCC_CLIP_REPORT_MAX)) {
-				CString strTmp;
+				CString strTmp;;
 				strTmp.Format(_T("*** NOTE: YCC Clipped. MCU=(%4u,%4u) YCC=(%5d,%5d,%5d) Cr Underflow @ Offset %s"),
-					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos());
+					nMcuX,nMcuY,nCurY,nCurCb,nCurCr,(LPCTSTR)GetScanBufPos().GetString());
 				m_pLog->AddLineWarn(strTmp);
 				m_nWarnYccClipNum++;
 				m_sStatClip.nClipCrUnder++;
@@ -4515,7 +4244,7 @@ void CimgDecode::CapRgbRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 
 	if (nLimitR < 0) {
 		if (m_bVerbose) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  YCC->RGB Clipped. MCU=(%4u,%4u) RGB=(%5d,%5d,%5d) Red Underflow"),
 				nMcuX,nMcuY,nLimitR,nLimitG,nLimitB);
 			m_pLog->AddLineWarn(strTmp);
@@ -4526,7 +4255,7 @@ void CimgDecode::CapRgbRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 	}
 	if (nLimitG < 0) {
 		if (m_bVerbose) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  YCC->RGB Clipped. MCU=(%4u,%4u) RGB=(%5d,%5d,%5d) Green Underflow"),
 				nMcuX,nMcuY,nLimitR,nLimitG,nLimitB);
 			m_pLog->AddLineWarn(strTmp);
@@ -4537,7 +4266,7 @@ void CimgDecode::CapRgbRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 	}
 	if (nLimitB < 0) {
 		if (m_bVerbose) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  YCC->RGB Clipped. MCU=(%4u,%4u) RGB=(%5d,%5d,%5d) Blue Underflow"),
 				nMcuX,nMcuY,nLimitR,nLimitG,nLimitB);
 			m_pLog->AddLineWarn(strTmp);
@@ -4548,7 +4277,7 @@ void CimgDecode::CapRgbRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 	}
 	if (nLimitR > 255) {
 		if (m_bVerbose) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  YCC->RGB Clipped. MCU=(%4u,%4u) RGB=(%5d,%5d,%5d) Red Overflow"),
 				nMcuX,nMcuY,nLimitR,nLimitG,nLimitB);
 			m_pLog->AddLineWarn(strTmp);
@@ -4559,7 +4288,7 @@ void CimgDecode::CapRgbRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 	}
 	if (nLimitG > 255) {
 		if (m_bVerbose) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  YCC->RGB Clipped. MCU=(%4u,%4u) RGB=(%5d,%5d,%5d) Green Overflow"),
 				nMcuX,nMcuY,nLimitR,nLimitG,nLimitB);
 			m_pLog->AddLineWarn(strTmp);
@@ -4570,7 +4299,7 @@ void CimgDecode::CapRgbRange(unsigned nMcuX,unsigned nMcuY,PixelCc &sPix)
 	}
 	if (nLimitB > 255) {
 		if (m_bVerbose) {
-			CString strTmp;
+			CString strTmp;;
 			strTmp.Format(_T("  YCC->RGB Clipped. MCU=(%4u,%4u) RGB=(%5d,%5d,%5d) Blue Overflow"),
 				nMcuX,nMcuY,nLimitR,nLimitG,nLimitB);
 			m_pLog->AddLineWarn(strTmp);
@@ -4673,7 +4402,7 @@ void CimgDecode::CalcChannelPreviewFull(CRect* pRectView,unsigned char* pTmp)
 
 	// For IDCT RGB Printout:
 	bool		bRowStart = false;
-	CString		strLine;
+	CString strLine;
 
 
 	unsigned	nMcuShiftInd = m_nPreviewShiftMcuY * (m_nImgSizeX/m_nMcuWidth) + m_nPreviewShiftMcuX;
@@ -4764,13 +4493,13 @@ void CimgDecode::CalcChannelPreviewFull(CRect* pRectView,unsigned char* pTmp)
 							strLine.Format(_T("      [ "));
 						}
 						strTmp.Format(_T("x%02X%02X%02X "),sPixSrc.nFinalR,sPixSrc.nFinalG,sPixSrc.nFinalB);
-						strLine.Append(strTmp);
+						strLine.append(strTmp);
 					} else {
 						if (bRowStart) {
 							// We had started a row, but we are now out of range, so we
 							// need to close up!
 							strTmp.Format(_T(" ]"));
-							strLine.Append(strTmp);
+							strLine.append(strTmp);
 							m_pLog->AddLine(strLine);
 							bRowStart = false;
 						}
@@ -4939,16 +4668,18 @@ void CimgDecode::GetImageSize(unsigned &nX,unsigned &nY)
 //
 void CimgDecode::GetBitmapPtr(unsigned char* &pBitmap)
 {
-	unsigned char *		pDibImgTmpBits = NULL;
+	// unsigned char *		pDibImgTmpBits = NULL;
 
-	pDibImgTmpBits = (unsigned char*) ( m_pDibTemp.GetDIBBitArray() );
+	// pDibImgTmpBits = (unsigned char*) ( m_pDibTemp.GetDIBBitArray() );
 
-	// Ensure that the pointers are available!
-	if ( !pDibImgTmpBits ) {
-		pBitmap = NULL;
-	} else {
-		pBitmap = pDibImgTmpBits;
-	}
+	// // Ensure that the pointers are available!
+	// if ( !pDibImgTmpBits ) {
+	// 	pBitmap = NULL;
+	// } else {
+	// 	pBitmap = pDibImgTmpBits;
+	// }
+
+	pBitmap = NULL;
 }
 
 // Calculate RGB pixel map from selected channels of YCC pixel map
@@ -4964,28 +4695,7 @@ void CimgDecode::GetBitmapPtr(unsigned char* &pBitmap)
 //
 void CimgDecode::CalcChannelPreview()
 {
-	unsigned char *		pDibImgTmpBits = NULL;
-
-	pDibImgTmpBits = (unsigned char*) ( m_pDibTemp.GetDIBBitArray() );
-
-	// Ensure that the pointers are available!
-	if ( !pDibImgTmpBits ) {
-		return;
-	}
-
-
-	// If we need to do a YCC shift, then do full recalc into tmp array
-	CalcChannelPreviewFull(NULL,pDibImgTmpBits);
-
-	// Since this was a complex mod, we don't mark this channel as
-	// being "done", so we will need to recalculate any time we change
-	// the channel display.
-
-	// Force an update of the view to be sure
-	//m_pDoc->UpdateAllViews(NULL);
-
 	return;
-
 }
 
 
@@ -5178,7 +4888,7 @@ void CimgDecode::SetMarkerBlk(unsigned nBlkX,unsigned nBlkY)
 		m_nMarkersBlkNum--;
 	}
 
-	CString		strTmp;
+	CString strTmp;
 	int			nY,nCb,nCr;
 	unsigned	nMcuX,nMcuY;
 	unsigned	nCssX,nCssY;
@@ -5252,31 +4962,7 @@ float CimgDecode::GetPreviewZoom()
 //
 void CimgDecode::SetPreviewZoom(bool bInc,bool bDec,bool bSet,unsigned nVal)
 {
-	if (bInc) {
-		if (m_nZoomMode+1 < PRV_ZOOMEND) {
-			m_nZoomMode++;
-
-		}
-	} else if (bDec) {
-		if (m_nZoomMode-1 > PRV_ZOOMBEGIN) {
-			m_nZoomMode--;
-		}
-	} else if (bSet) {
-		m_nZoomMode = nVal;
-	}
-	switch(m_nZoomMode) {
-		case PRV_ZOOM_12:  m_nZoom = 0.125; break;
-		case PRV_ZOOM_25:  m_nZoom = 0.25; break;
-		case PRV_ZOOM_50:  m_nZoom = 0.5; break;
-		case PRV_ZOOM_100: m_nZoom = 1.0; break;
-		case PRV_ZOOM_150: m_nZoom = 1.5; break;
-		case PRV_ZOOM_200: m_nZoom = 2.0; break;
-		case PRV_ZOOM_300: m_nZoom = 3.0; break;
-		case PRV_ZOOM_400: m_nZoom = 4.0; break;
-		case PRV_ZOOM_800: m_nZoom = 8.0; break;
-		default:           m_nZoom = 1.0; break;
-	}
-
+	return;
 }
 
 // Main draw routine for the image
@@ -5296,325 +4982,7 @@ void CimgDecode::SetPreviewZoom(bool bInc,bool bDec,bool bSet,unsigned nVal)
 void CimgDecode::ViewOnDraw(CDC* pDC,CRect rectClient,CPoint ptScrolledPos,
 							CFont* pFont, CSize &szNewScrollSize)
 {
-
-	unsigned	nBorderLeft		= 10;
-	unsigned	nBorderBottom	= 10;
-	unsigned	nTitleHeight	= 20;
-	unsigned	nTitleIndent    = 5;
-	unsigned	nTitleLowGap	= 3;
-
-	m_nPageWidth = 600;
-	m_nPageHeight = 10;	// Start with some margin
-
-
-	CString strTmp;
-	CString strRender;
-	int		nHeight;
-
-
-	unsigned nYPosImgTitle		= 0;
-	unsigned nYPosImg			= 0;
-	unsigned nYPosHistTitle		= 0;
-	unsigned nYPosHist			= 0;
-	unsigned nYPosHistYTitle	= 0;
-	unsigned nYPosHistY			= 0;	// Y position of Img & Histogram
-
-	CRect rectTmp;
-
-	// If we have displayed an image, make sure to allow for
-	// the additional space!
-
-	bool bImgDrawn = false;
-
-	CBrush	brGray(    RGB(128, 128, 128));
-	CBrush	brGrayLt1( RGB(210, 210, 210));
-	CBrush	brGrayLt2( RGB(240, 240, 240));
-	CBrush	brBlueLt(  RGB(240, 240, 255));
-	CPen	penRed(PS_DOT,1,RGB(255,0,0));
-
-
-	if (m_bDibTempReady) {
-
-		nYPosImgTitle = m_nPageHeight;
-		m_nPageHeight += nTitleHeight;	// Margin at top for title
-
-		m_rectImgReal.SetRect(0,0,
-			(int)(m_rectImgBase.right*m_nZoom),
-			(int)(m_rectImgBase.bottom*m_nZoom) );
-
-		nYPosImg = m_nPageHeight;
-		m_nPageHeight += m_rectImgReal.Height();
-		m_nPageHeight += nBorderBottom;	// Margin at bottom
-		bImgDrawn = true;
-
-		m_rectImgReal.OffsetRect(nBorderLeft,nYPosImg);
-
-		// Now create the shadow of the main image
-		rectTmp = m_rectImgReal;
-		rectTmp.OffsetRect(4,4);
-		pDC->FillRect(rectTmp,&brGrayLt1);
-		rectTmp.InflateRect(1,1,1,1);
-		pDC->FrameRect(rectTmp,&brGrayLt2);
-
-	}
-
-	if (m_bHistEn) {
-
-		if (m_bDibHistRgbReady) {
-
-			nYPosHistTitle = m_nPageHeight;
-			m_nPageHeight += nTitleHeight;	// Margin at top for title
-
-			m_rectHistReal = m_rectHistBase;
-
-			nYPosHist = m_nPageHeight;
-			m_nPageHeight += m_rectHistReal.Height();
-			m_nPageHeight += nBorderBottom;	// Margin at bottom
-			bImgDrawn = true;
-
-			m_rectHistReal.OffsetRect(nBorderLeft,nYPosHist);
-
-			// Create the border
-			rectTmp = m_rectHistReal;
-			rectTmp.InflateRect(1,1,1,1);
-			pDC->FrameRect(rectTmp,&brGray);
-		}
-
-		if (m_bDibHistYReady) {
-
-			nYPosHistYTitle = m_nPageHeight;
-			m_nPageHeight += nTitleHeight;	// Margin at top for title
-
-			m_rectHistYReal = m_rectHistYBase;
-
-			nYPosHistY = m_nPageHeight;
-			m_nPageHeight += m_rectHistYReal.Height();
-			m_nPageHeight += nBorderBottom;	// Margin at bottom
-			bImgDrawn = true;
-
-			m_rectHistYReal.OffsetRect(nBorderLeft,nYPosHistY);
-
-			// Create the border
-			rectTmp = m_rectHistYReal;
-			rectTmp.InflateRect(1,1,1,1);
-			pDC->FrameRect(rectTmp,&brGray);
-
-
-		}
-
-	}
-
-
-	// Find a starting line based on scrolling
-	// and current client size
-
-
-	CRect rectClientScrolled = rectClient;
-	rectClientScrolled.OffsetRect(ptScrolledPos);
-
-	// Change the font
-	CFont*	pOldFont;
-	pOldFont = pDC->SelectObject(pFont);
-
-	CString strTitle;
-
-	// Draw the bitmap if ready
-	if (m_bDibTempReady) {
-
-		// Print label
-
-		if (!m_bPreviewIsJpeg) {
-			// For all non-JPEG images, report with simple title
-			strTitle = _T("Image");
-		} else {
-			strTitle = _T("Image (");
-			switch (m_nPreviewMode) {
-				case PREVIEW_RGB:	strTitle += _T("RGB"); break;
-				case PREVIEW_YCC:	strTitle += _T("YCC"); break;
-				case PREVIEW_R:		strTitle += _T("R"); break;
-				case PREVIEW_G:		strTitle += _T("G"); break;
-				case PREVIEW_B:		strTitle += _T("B"); break;
-				case PREVIEW_Y:		strTitle += _T("Y"); break;
-				case PREVIEW_CB:	strTitle += _T("Cb"); break;
-				case PREVIEW_CR:	strTitle += _T("Cr"); break;
-				default:			strTitle += _T("???"); break;
-			}
-			if (m_bDecodeScanAc) {
-				strTitle += _T(", DC+AC)");
-			} else {
-				strTitle += _T(", DC)");
-			}
-		}
-
-
-		switch (m_nZoomMode) {
-			case PRV_ZOOM_12: strTitle += " @ 12.5% (1/8)"; break;
-			case PRV_ZOOM_25: strTitle += " @ 25% (1/4)"; break;
-			case PRV_ZOOM_50: strTitle += " @ 50% (1/2)"; break;
-			case PRV_ZOOM_100: strTitle += _T(" @ 100% (1:1)"); break;
-			case PRV_ZOOM_150: strTitle += _T(" @ 150% (3:2)"); break;
-			case PRV_ZOOM_200: strTitle += _T(" @ 200% (2:1)"); break;
-			case PRV_ZOOM_300: strTitle += _T(" @ 300% (3:1)"); break;
-			case PRV_ZOOM_400: strTitle += _T(" @ 400% (4:1)"); break;
-			case PRV_ZOOM_800: strTitle += _T(" @ 800% (8:1)"); break;
-			default: strTitle += _T(""); break;
-		}
-
-
-		// Calculate the title width
-		CRect rectCalc = CRect(0,0,0,0);
-		nHeight = pDC->DrawText(strTitle,-1,&rectCalc,
-			DT_CALCRECT | DT_TOP | DT_NOPREFIX | DT_SINGLELINE);
-		int nWidth = rectCalc.Width() + 2*nTitleIndent;
-
-		// Determine the title area (could be larger than the image
-		// if the image zoom is < 100% or sized small)
-
-		// Draw title background
-		rectTmp = CRect(m_rectImgReal.left,nYPosImgTitle,
-			max(m_rectImgReal.right,m_rectImgReal.left+nWidth),m_rectImgReal.top-nTitleLowGap);
-		pDC->FillRect(rectTmp,&brBlueLt);
-
-		// Draw the title
-		int	nBkMode = pDC->GetBkMode();
-		pDC->SetBkMode(TRANSPARENT);
-		rectTmp.OffsetRect(nTitleIndent,0);
-		nHeight = pDC->DrawText(strTitle,-1,&rectTmp,
-			DT_TOP | DT_NOPREFIX | DT_SINGLELINE);
-		pDC->SetBkMode(nBkMode);
-
-		// Draw image
-
-		// Assume that the temp image has already been generated!
-		// For speed purposes, we use m_pDibTemp only when we are
-		// in a mode other than RGB or YCC. In the RGB/YCC modes,
-		// we skip the CalcChannelPreview() step.
-
-		// TODO: Improve redraw time by only redrawing the currently visible
-		// region. Requires a different CopyDIB routine with a subset region.
-		// Needs to take into account zoom setting (eg. intersection between
-		// rectClient and m_rectImgReal).
-
-		// Use a common DIB instead of creating/swapping tmp / ycc and rgb.
-		// This way we can also have more flexibility in modifying RGB & YCC displays.
-		// Time calling CalcChannelPreview() seems small, so no real impact.
-
-		// Image member usage:
-		// m_pDibTemp:
-
-		m_pDibTemp.CopyDIB(pDC,m_rectImgReal.left,m_rectImgReal.top,m_nZoom);
-
-		// Now create overlays
-
-		// Only draw overlay (eg. actual image boundary overlay) if the values
-		// have been set properly. Note that PSD decode currently sets these
-		// values to zero.
-		if ((m_nDimX != 0) && (m_nDimY != 0)) {
-			CPen* pPen = pDC->SelectObject(&penRed);
-
-			// Draw boundary for end of valid data (inside partial MCU)
-			int nXZoomed = (int)(m_nDimX*m_nZoom);
-			int nYZoomed = (int)(m_nDimY*m_nZoom);
-
-			pDC->MoveTo(m_rectImgReal.left+nXZoomed,m_rectImgReal.top);
-			pDC->LineTo(m_rectImgReal.left+nXZoomed,m_rectImgReal.top+nYZoomed);
-
-			pDC->MoveTo(m_rectImgReal.left,m_rectImgReal.top+nYZoomed);
-			pDC->LineTo(m_rectImgReal.left+nXZoomed,m_rectImgReal.top+nYZoomed);
-
-			pDC->SelectObject(pPen);
-		}
-
-		// Before we frame the region, let's draw any remaining overlays
-
-		// Only draw the MCU overlay if zoom is > 100%, otherwise we will have
-		// replaced entire image with the boundary lines!
-		if ( m_bViewOverlaysMcuGrid && (m_nZoomMode >= PRV_ZOOM_25)) {
-			ViewMcuOverlay(pDC);
-		}
-
-		// Always draw the markers
-		ViewMcuMarkedOverlay(pDC);
-
-
-		// Final frame border
-		rectTmp = m_rectImgReal;
-		rectTmp.InflateRect(1,1,1,1);
-		pDC->FrameRect(rectTmp,&brGray);
-
-
-		// Preserve the image placement (for other functions, such as click detect)
-		m_nPreviewPosX = m_rectImgReal.left;
-		m_nPreviewPosY = m_rectImgReal.top;
-		m_nPreviewSizeX = m_rectImgReal.Width();
-		m_nPreviewSizeY = m_rectImgReal.Height();
-
-		// m_nPageWidth is already hardcoded above
-		ASSERT(m_nPageWidth>=0);
-		m_nPageWidth = max((unsigned)m_nPageWidth, m_nPreviewPosX + m_nPreviewSizeX);
-
-
-	}
-
-	if (m_bHistEn) {
-
-		if (m_bDibHistRgbReady) {
-
-			// Draw title background
-			rectTmp = CRect(m_rectHistReal.left,nYPosHistTitle,
-				m_rectHistReal.right,m_rectHistReal.top-nTitleLowGap);
-			pDC->FillRect(rectTmp,&brBlueLt);
-
-			// Draw the title
-			int	nBkMode = pDC->GetBkMode();
-			pDC->SetBkMode(TRANSPARENT);
-			rectTmp.OffsetRect(nTitleIndent,0);
-			nHeight = pDC->DrawText(_T("Histogram (RGB)"),-1,&rectTmp,
-				DT_TOP | DT_NOPREFIX | DT_SINGLELINE);
-			pDC->SetBkMode(nBkMode);
-
-			// Draw image
-			m_pDibHistRgb.CopyDIB(pDC,m_rectHistReal.left,m_rectHistReal.top);
-		}
-
-		if (m_bDibHistYReady) {
-
-			// Draw title background
-			rectTmp = CRect(m_rectHistYReal.left,nYPosHistYTitle,
-				m_rectHistYReal.right,m_rectHistYReal.top-nTitleLowGap);
-			pDC->FillRect(rectTmp,&brBlueLt);
-
-			// Draw the title
-			int	nBkMode = pDC->GetBkMode();
-			pDC->SetBkMode(TRANSPARENT);
-			rectTmp.OffsetRect(nTitleIndent,0);
-			nHeight = pDC->DrawText(_T("Histogram (Y)"),-1,&rectTmp,
-				DT_TOP | DT_NOPREFIX | DT_SINGLELINE);
-			pDC->SetBkMode(nBkMode);
-
-			// Draw image
-			m_pDibHistY.CopyDIB(pDC,m_rectHistYReal.left,m_rectHistYReal.top);
-			//m_pDibHistY.CopyDIB(pDC,nBorderLeft,nYPosHistY);
-		}
-	}
-
-	// If no image has been drawn, indicate to user why!
-	if (!bImgDrawn) {
-		//ScrollRect.top = m_nPageHeight;	// FIXME:?
-
-		// Print label
-		//nHeight = pDC->DrawText(_T("Image Decode disabled. Enable with [Options->Decode Scan Image]"), -1,&ScrollRect,
-		//	DT_TOP | DT_NOPREFIX | DT_SINGLELINE);
-
-	}
-
-	// Restore the original font
-	pDC->SelectObject(pOldFont);
-
-	// Set scroll bars accordingly. We use the page dimensions here.
-	CSize sizeTotal(m_nPageWidth+nBorderLeft,m_nPageHeight);
-
-	szNewScrollSize = sizeTotal;
+	return;
 }
 
 // Draw an overlay that shows the MCU grid
@@ -5624,31 +4992,7 @@ void CimgDecode::ViewOnDraw(CDC* pDC,CRect rectClient,CPoint ptScrolledPos,
 //
 void CimgDecode::ViewMcuOverlay(CDC* pDC)
 {
-	// Now create overlays
-	unsigned nXZoomed,nYZoomed;
-
-	CPen	penDot(PS_DOT,1,RGB(32,32,32));
-
-	int			nBkModeOld = pDC->GetBkMode();
-	CPen*		pPenOld = pDC->SelectObject(&penDot);
-	pDC->SetBkMode(TRANSPARENT);
-
-	// Draw vertical lines
-	for (unsigned nMcuX=0;nMcuX<m_nMcuXMax;nMcuX++) {
-		nXZoomed = (int)(nMcuX*m_nMcuWidth*m_nZoom);
-		pDC->MoveTo(m_rectImgReal.left+nXZoomed,m_rectImgReal.top);
-		pDC->LineTo(m_rectImgReal.left+nXZoomed,m_rectImgReal.bottom);
-	}
-
-	for (unsigned nMcuY=0;nMcuY<m_nMcuYMax;nMcuY++) {
-		nYZoomed = (int)(nMcuY*m_nMcuHeight*m_nZoom);
-		pDC->MoveTo(m_rectImgReal.left,m_rectImgReal.top+nYZoomed);
-		pDC->LineTo(m_rectImgReal.right,m_rectImgReal.top+nYZoomed);
-	}
-
-	pDC->SelectObject(pPenOld);
-	pDC->SetBkMode(nBkModeOld);
-
+	return;
 }
 
 // Draw an overlay that highlights the marked MCUs
@@ -5658,31 +5002,7 @@ void CimgDecode::ViewMcuOverlay(CDC* pDC)
 //
 void CimgDecode::ViewMcuMarkedOverlay(CDC* pDC)
 {
-	pDC;	// Unreferenced param
-
-	// Now draw a simple MCU Marker overlay
-	CRect	my_rect;
-	CBrush	my_brush(RGB(255, 0, 255));
-	for (unsigned nMcuY=0;nMcuY<m_nMcuYMax;nMcuY++) {
-		for (unsigned nMcuX=0;nMcuX<m_nMcuXMax;nMcuX++) {
-			//unsigned nXY = nMcuY*m_nMcuXMax + nMcuX;
-			//unsigned nXZoomed = (unsigned)(nMcuX*m_nMcuWidth*m_nZoom);
-			//unsigned nYZoomed = (unsigned)(nMcuY*m_nMcuHeight*m_nZoom);
-
-			/*
-			// TODO: Implement an overlay function
-			if (m_bMarkedMcuMapEn && m_abMarkedMcuMap && m_abMarkedMcuMap[nXY]) {
-				// Note that drawing is an overlay, so we are dealing with real
-				// pixel coordinates, not preview image coords
-				my_rect = CRect(nXZoomed,nYZoomed,nXZoomed+(unsigned)(m_nMcuWidth*m_nZoom),
-					nYZoomed+(unsigned)(m_nMcuHeight*m_nZoom));
-				my_rect.OffsetRect(m_rectImgReal.left,m_rectImgReal.top);
-				pDC->FrameRect(my_rect,&my_brush);
-			}
-			*/
-
-		}
-	}
+	return;
 
 }
 
@@ -5696,17 +5016,7 @@ void CimgDecode::ViewMcuMarkedOverlay(CDC* pDC)
 //
 void CimgDecode::ViewMarkerOverlay(CDC* pDC,unsigned nBlkX,unsigned nBlkY)
 {
-	CRect	my_rect;
-	CBrush	my_brush(RGB(255, 0, 255));
-
-	// Note that drawing is an overlay, so we are dealing with real
-	// pixel coordinates, not preview image coords
-	my_rect = CRect(	(unsigned)(m_nZoom*(nBlkX+0)),
-						(unsigned)(m_nZoom*(nBlkY+0)),
-						(unsigned)(m_nZoom*(nBlkX+1)),
-						(unsigned)(m_nZoom*(nBlkY+1)));
-	my_rect.OffsetRect(m_nPreviewPosX,m_nPreviewPosY);
-	pDC->FillRect(my_rect,&my_brush);
+	return;
 }
 
 
@@ -5745,7 +5055,7 @@ void CimgDecode::SetPreviewOverlayMcuGridToggle()
 void CimgDecode::ReportDcRun(unsigned nMcuX, unsigned nMcuY, unsigned nMcuLen)
 {
 	// FIXME: Should I be working on MCU level or block level?
-	CString	strTmp;
+	CString strTmp;
 	m_pLog->AddLine(_T(""));
 	m_pLog->AddLineHdr(_T("*** Reporting DC Levels ***"));
 	strTmp.Format(_T("  Starting MCU   = [%u,%u]"),nMcuX,nMcuY);

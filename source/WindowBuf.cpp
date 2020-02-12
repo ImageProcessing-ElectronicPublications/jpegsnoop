@@ -16,7 +16,10 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "stdafx.h"
+// #include "stdafx.h"
+#include "../main/WindowsClasses.h"
+
+#include <stdlib.h>
 
 #include "WindowBuf.h"
 
@@ -27,7 +30,6 @@ void CwindowBuf::Reset()
 	// File handling
 	m_bBufOK = false;			// Initialize the buffer to not loaded yet
 	m_pBufFile = NULL;		// No file open yet
-
 }
 
 // Constructor for WindowBuf class
@@ -39,11 +41,9 @@ CwindowBuf::CwindowBuf()
 {
 	m_pBuffer = new BYTE[MAX_BUF];
 	if (!m_pBuffer) {
-		AfxMessageBox(_T("ERROR: Not enough memory for File Buffer"));
+		// AfxMessageBox(_T("ERROR: Not enough memory for File Buffer"));
 		exit(1);
 	}
-
-	m_pStatBar = NULL;
 
 	Reset();
 
@@ -97,7 +97,7 @@ void CwindowBuf::BufFileSet(CFile* inFile)
 {
 	ASSERT(inFile);
 	if (!inFile) {
-		AfxMessageBox(_T("ERROR: BufFileSet() with NULL inFile"));
+		// AfxMessageBox(_T("ERROR: BufFileSet() with NULL inFile"));
 		ASSERT(false);
 		return;
 	}
@@ -106,7 +106,7 @@ void CwindowBuf::BufFileSet(CFile* inFile)
 	m_nPosEof = (unsigned long) m_pBufFile->GetLength();
 	if (m_nPosEof == 0) {
 		m_pBufFile = NULL;
-		AfxMessageBox(_T("ERROR: BufFileSet() File length zero"));
+		// AfxMessageBox(_T("ERROR: BufFileSet() File length zero"));
 	}
 }
 
@@ -152,7 +152,7 @@ bool CwindowBuf::BufSearch(unsigned long nStartPos, unsigned nSearchVal, unsigne
 	// Save the current position
 	unsigned long   nCurPos;
 	unsigned        nCurVal;
-	CString			strStatus;
+	char			strStatus[STRING_LENGTH]={0};
 	time_t			tmLast = clock();
 
 	nCurPos = nStartPos;
@@ -164,13 +164,12 @@ bool CwindowBuf::BufSearch(unsigned long nStartPos, unsigned nSearchVal, unsigne
 		// - Note that we only check timer when step counter has
 		//   reached a certain threshold. This limits the overhead
 		//   associated with the timer comparison
-		if ( ((nCurPos%(16*1024))==0) && (m_pStatBar)) {
+		if ( ((nCurPos%(16*1024))==0) /* && (m_pStatBar) */) {
 			time_t tmNow = clock();
 			if ((tmNow-tmLast) > (CLOCKS_PER_SEC / 8) ) {
 				tmLast = tmNow;
 				float	fProgress = (nCurPos*100.0f)/m_nPosEof;
-				strStatus.Format(_T("Searching %3.f%% (%lu of %lu)..."),fProgress,nCurPos,m_nPosEof);
-				m_pStatBar->SetPaneText(0,strStatus);
+				sprintf(strStatus,_T("Searching %3.f%% (%lu of %lu)..."),fProgress,nCurPos,m_nPosEof);
 			}
 		}
 
@@ -196,7 +195,7 @@ bool CwindowBuf::BufSearch(unsigned long nStartPos, unsigned nSearchVal, unsigne
 		} else if (nSearchLen == 1) {
 			nCurVal = Buf(nCurPos+0);
 		} else {
-			AfxMessageBox(_T("ERROR: Unexpected nSearchLen"));
+			// AfxMessageBox(_T("ERROR: Unexpected nSearchLen"));
 			nCurVal = 0x0000;
 		}
 		if (nCurVal == nSearchVal) {
@@ -214,9 +213,9 @@ bool CwindowBuf::BufSearch(unsigned long nStartPos, unsigned nSearchVal, unsigne
 //SetStatusText
 
 // Establish local copy of status bar pointer
-void CwindowBuf::SetStatusBar(CStatusBar* pStatBar)
+void CwindowBuf::SetStatusBar(void* pStatBar)
 {
-	m_pStatBar = pStatBar;
+	return;
 }
 
 // Search for a variable-length byte string in the buffer from a given starting position
@@ -253,7 +252,7 @@ bool CwindowBuf::BufSearchX(unsigned long nStartPos, BYTE* anSearchVal, unsigned
 	unsigned long	nMatchStartPos = 0;
 	//bool			bMatchStart = false;
 	bool			bMatchOn = false;
-	CString			strStatus;
+	char			strStatus[STRING_LENGTH]={0};
 	time_t			tmLast = clock();
 
 	nCurPosOffset = 0;
@@ -279,13 +278,12 @@ bool CwindowBuf::BufSearchX(unsigned long nStartPos, BYTE* anSearchVal, unsigned
 		// - Note that we only check timer when step counter has
 		//   reached a certain threshold. This limits the overhead
 		//   associated with the timer comparison
-		if ( ((nCurPos%(16*1024))==0) && (m_pStatBar)) {
+		if ( ((nCurPos%(16*1024))==0) /* && (m_pStatBar) */) {
 			time_t tmNow = clock();
 			if ((tmNow-tmLast) > (CLOCKS_PER_SEC / 8) ) {
 				tmLast = tmNow;
 				float	fProgress = (nCurPos*100.0f)/m_nPosEof;
-				strStatus.Format(_T("Searching %3.f%% (%lu of %lu)..."),fProgress,nCurPos,m_nPosEof);
-				m_pStatBar->SetPaneText(0,strStatus);
+				sprintf(strStatus,_T("Searching %3.f%% (%lu of %lu)..."),fProgress,nCurPos,m_nPosEof);
 			}
 		}
 
@@ -316,10 +314,6 @@ bool CwindowBuf::BufSearchX(unsigned long nStartPos, BYTE* anSearchVal, unsigned
 			bDone = true;
 		}
 
-	}
-
-	if (m_pStatBar) {
-		m_pStatBar->SetPaneText(0,_T("Done"));
 	}
 
 
@@ -355,11 +349,6 @@ void CwindowBuf::BufLoadWindow(unsigned long nPosition)
 	// has already been closed, so we must check first.
 
 	if (m_pBufFile) {
-		/*
-		CString strTmp;
-		strTmp.Format(_T("** BufLoadWindow @ 0x%08X"),nPosition);
-		log->AddLine(strTmp);
-		*/
 
 		// Initialize to bad values
 		m_bBufOK = false;
@@ -411,7 +400,7 @@ void CwindowBuf::BufLoadWindow(unsigned long nPosition)
 		}
 
 	} else {
-		AfxMessageBox(_T("ERROR: BufLoadWindow() and no file open"));
+		// AfxMessageBox(_T("ERROR: BufLoadWindow() and no file open"));
 	}
 }
 
@@ -431,7 +420,7 @@ void CwindowBuf::BufLoadWindow(unsigned long nPosition)
 bool CwindowBuf::OverlayAlloc(unsigned nInd)
 {
 	if (nInd >= NUM_OVERLAYS) {
-		AfxMessageBox(_T("ERROR: Maximum number of overlays reached"));
+		// AfxMessageBox(_T("ERROR: Maximum number of overlays reached"));
 		return false;
 
 	} else if (m_psOverlay[nInd]) {
@@ -441,7 +430,7 @@ bool CwindowBuf::OverlayAlloc(unsigned nInd)
 	} else {
 		m_psOverlay[nInd] = new sOverlay();
 		if (!m_psOverlay[nInd]) {
-			AfxMessageBox(_T("NOTE: Out of memory for extra file overlays"));
+			// AfxMessageBox(_T("NOTE: Out of memory for extra file overlays"));
 			return false;
 		} else {
 			memset(m_psOverlay[nInd],0,sizeof(sOverlay));
@@ -479,14 +468,14 @@ bool CwindowBuf::OverlayAlloc(unsigned nInd)
 //
 void CwindowBuf::ReportOverlays(CDocLog* pLog)
 {
-	CString	strTmp;
+	char strTmp[STRING_LENGTH]={0};
 
 	if (m_nOverlayNum>0) {
-		strTmp.Format(_T("  Buffer Overlays active: %u"),m_nOverlayNum);
+		sprintf(strTmp,_T("  Buffer Overlays active: %u"),m_nOverlayNum);
 		pLog->AddLine(strTmp);
 		for (unsigned ind=0;ind<m_nOverlayNum;ind++) {
 			if (m_psOverlay[ind]) {
-				strTmp.Format(_T("    %03u: MCU[%4u,%4u] MCU DelLen=[%2u] InsLen=[%2u] DC Offset YCC=[%5d,%5d,%5d] Overlay Byte Len=[%4u]"),
+				sprintf(strTmp,_T("    %03u: MCU[%4u,%4u] MCU DelLen=[%2u] InsLen=[%2u] DC Offset YCC=[%5d,%5d,%5d] Overlay Byte Len=[%4u]"),
 					ind,m_psOverlay[ind]->nMcuX,m_psOverlay[ind]->nMcuY,m_psOverlay[ind]->nMcuLen,m_psOverlay[ind]->nMcuLenIns,
 					m_psOverlay[ind]->nDcAdjustY,m_psOverlay[ind]->nDcAdjustCb,m_psOverlay[ind]->nDcAdjustCr,
 					m_psOverlay[ind]->nLen);
@@ -546,7 +535,7 @@ bool CwindowBuf::OverlayInstall(unsigned nOvrInd, BYTE* pOverlay,unsigned nLen,u
 
 		m_nOverlayNum++;
 	} else {
-		AfxMessageBox(_T("ERROR: CwindowBuf:OverlayInstall() overlay too large"));
+		// AfxMessageBox(_T("ERROR: CwindowBuf:OverlayInstall() overlay too large"));
 		return false;
 	}
 
@@ -742,7 +731,7 @@ unsigned CwindowBuf::BufX(unsigned long nOffset,unsigned nSz,bool nByteSwap)
 			} else if (nSz==1) {
 				return (m_pBuffer[nWinRel+0]);
 			} else {
-				AfxMessageBox(_T("ERROR: BufX() with bad size"));
+				// AfxMessageBox(_T("ERROR: BufX() with bad size"));
 				return 0;
 			}
 		} else {
@@ -753,7 +742,7 @@ unsigned CwindowBuf::BufX(unsigned long nOffset,unsigned nSz,bool nByteSwap)
 			} else if (nSz==1) {
 				return (m_pBuffer[nWinRel+0]);
 			} else {
-				AfxMessageBox(_T("ERROR: BufX() with bad size"));
+				// AfxMessageBox(_T("ERROR: BufX() with bad size"));
 				return 0;
 			}
 		}
@@ -778,7 +767,7 @@ unsigned CwindowBuf::BufX(unsigned long nOffset,unsigned nSz,bool nByteSwap)
 				} else if (nSz==1) {
 					return (m_pBuffer[nWinRel+0]);
 				} else {
-					AfxMessageBox(_T("ERROR: BufX() with bad size"));
+					// AfxMessageBox(_T("ERROR: BufX() with bad size"));
 					return 0;
 				}
 			} else {
@@ -789,7 +778,7 @@ unsigned CwindowBuf::BufX(unsigned long nOffset,unsigned nSz,bool nByteSwap)
 				} else if (nSz==1) {
 					return (m_pBuffer[nWinRel+0]);
 				} else {
-					AfxMessageBox(_T("ERROR: BufX() with bad size"));
+					// AfxMessageBox(_T("ERROR: BufX() with bad size"));
 					return 0;
 				}
 			}
@@ -842,11 +831,11 @@ unsigned CwindowBuf::BufRdAdv4(unsigned long &nOffset,bool bByteSwap)
 // RETURN:
 // - String fetched from file
 //
-CString CwindowBuf::BufReadStr(unsigned long nPosition)
+char * CwindowBuf::BufReadStr(unsigned long nPosition)
 {
 	// Try to read a NULL-terminated string from file offset "nPosition"
 	// up to a maximum of MAX_BUF_READ_STR bytes. Result is max length MAX_BUF_READ_STR
-	CString			strRd = _T("");
+	char *			strRd = (char *)calloc(STRING_LENGTH, 1);
 	unsigned char	cRd;
 	bool			bDone = false;
 	unsigned		nIndex = 0;
@@ -856,7 +845,7 @@ CString CwindowBuf::BufReadStr(unsigned long nPosition)
 		cRd = Buf(nPosition+nIndex);
 		// Only add if printable
 		if (isprint(cRd)) {
-			strRd += cRd;
+			strRd[strlen(strRd)] = cRd;
 		}
 		nIndex++;
 		if (cRd == 0) {
@@ -867,105 +856,6 @@ CString CwindowBuf::BufReadStr(unsigned long nPosition)
 		}
 	}
 	return strRd;
-}
-
-// Read a null-terminated 16-bit unicode string from the buffer/cache at the
-// indicated file offset.
-// - FIXME: Replace faked out unicode-to-ASCII conversion with real implementation
-// - Does not affect the current file pointer nPosition
-// - String length is limited by encountering either the NULL character
-//   of exceeding the maximum length of MAX_BUF_READ_STR
-// - Reference: BUG: #1112
-//
-// INPUT:
-// - nPosition			File offset to start string fetch
-//
-// RETURN:
-// - String fetched from file
-//
-CString CwindowBuf::BufReadUniStr(unsigned long nPosition)
-{
-	// Try to read a NULL-terminated string from file offset "nPosition"
-	// up to a maximum of MAX_BUF_READ_STR bytes. Result is max length MAX_BUF_READ_STR
-	CString			strRd;
-	unsigned char	cRd;
-	bool			bDone = false;
-	unsigned		nIndex = 0;
-
-	while (!bDone)
-	{
-		cRd = Buf(nPosition+nIndex);
-
-		// Make sure it is a printable char!
-		// FIXME: No, we can't check for this as it will cause
-		// _tcslen() call in the calling function to get the wrong
-		// length as it isn't null-terminated. Skip for now.
-//		if (isprint(cRd)) {
-//			strRd += cRd;
-//		} else {
-//			strRd += _T(".");
-//		}
-		strRd += cRd;
-
-		nIndex+=2;
-		if (cRd == 0) {
-			bDone = true;
-		} else if (nIndex >= (MAX_BUF_READ_STR*2)) {
-			bDone = true;
-		}
-	}
-	return strRd;
-}
-
-
-// Wrapper for ByteStr2Unicode that uses local Window Buffer
-#define MAX_UNICODE_STRLEN	255
-CString CwindowBuf::BufReadUniStr2(unsigned long nPos, unsigned nBufLen)
-{
-	// Convert byte array into unicode string
-	// TODO: Replace with call to ByteStr2Unicode()
-
-	bool		bByteSwap = false;
-	CString		strVal;
-	unsigned	nStrLenTrunc;
-	BYTE		nChVal;
-	BYTE		anStrBuf[(MAX_UNICODE_STRLEN+1)*2];
-	wchar_t		acStrBuf[(MAX_UNICODE_STRLEN+1)];
-
-	// Start with length before any truncation
-	nStrLenTrunc = nBufLen;
-
-	// Read unicode bytes into byte array
-	// Truncate the string, leaving room for terminator
-	if (nStrLenTrunc>MAX_UNICODE_STRLEN) {
-		nStrLenTrunc = MAX_UNICODE_STRLEN;
-	}
-	for (unsigned nInd=0;nInd<nStrLenTrunc;nInd++) {
-
-		if (bByteSwap) {
-			// Reverse the order of the bytes
-			nChVal = Buf(nPos+(nInd*2)+0);
-			anStrBuf[(nInd*2)+1] = nChVal;
-			nChVal = Buf(nPos+(nInd*2)+1);
-			anStrBuf[(nInd*2)+0] = nChVal;
-		} else {
-			// No byte reversal
-			nChVal = Buf(nPos+(nInd*2)+0);
-			anStrBuf[(nInd*2)+0] = nChVal;
-			nChVal = Buf(nPos+(nInd*2)+1);
-			anStrBuf[(nInd*2)+1] = nChVal;
-		}
-	}
-	// Ensure it is terminated
-	anStrBuf[nStrLenTrunc*2+0] = 0;
-	anStrBuf[nStrLenTrunc*2+1] = 0;
-	// Copy into unicode string
-	// Ensure that it is terminated first!
-	lstrcpyW(acStrBuf,(LPCWSTR)anStrBuf);
-	// Copy into CString
-	strVal = acStrBuf;
-
-	return strVal;
 }
 
 
@@ -981,11 +871,11 @@ CString CwindowBuf::BufReadUniStr2(unsigned long nPos, unsigned nBufLen)
 // RETURN:
 // - String fetched from file
 //
-CString CwindowBuf::BufReadStrn(unsigned long nPosition,unsigned nLen)
+char * CwindowBuf::BufReadStrn(unsigned long nPosition,unsigned nLen)
 {
 	// Try to read a fixed-length string from file offset "nPosition"
 	// up to a maximum of "nLen" bytes. Result is length "nLen"
-	CString			strRd = _T("");
+	char *			strRd = (char *)calloc(STRING_LENGTH,1);
 	unsigned char	cRd;
 	bool			bDone = false;
 
@@ -994,7 +884,7 @@ CString CwindowBuf::BufReadStrn(unsigned long nPosition,unsigned nLen)
 		{
 			cRd = Buf(nPosition+nInd);
 			if (isprint(cRd)) {
-				strRd += cRd;
+				strRd[strlen(strRd)] = cRd;
 			}
 			if (cRd == char(0)) {
 				bDone = true;
@@ -1002,6 +892,7 @@ CString CwindowBuf::BufReadStrn(unsigned long nPosition,unsigned nLen)
 		}
 		return strRd;
 	} else {
-		return _T("");
+		free(strRd);
+		return "";
 	}
 }

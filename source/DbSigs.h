@@ -84,7 +84,7 @@ public:
 	void		SetEntryValid(unsigned nInd,bool bValid);
 
 	void		DatabaseExtraClean();
-	void		DatabaseExtraLoad();
+	// void		DatabaseExtraLoad();
 	void		DatabaseExtraStore();
 
 	unsigned	DatabaseExtraGetNum();

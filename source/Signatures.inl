@@ -19,6 +19,9 @@
 #include "stdafx.h"
 #include "DbSigs.h"
 
+#pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 // Signature List
 const CompSigConst CDbSigs::m_sSigList[] = {
 

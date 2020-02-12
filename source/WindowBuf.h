@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include "../main/WindowsClasses.h"
 #include "DocLog.h"
 
 // For now, we only ever use MAX_BUF_WINDOW bytes, even though we
@@ -70,7 +71,7 @@ public:
 	~CwindowBuf();
 
 public:
-	void			SetStatusBar(CStatusBar* pStatBar);
+	void			SetStatusBar(void* pStatBar);
 
 	void			BufLoadWindow(unsigned long nPosition);
 	void			BufFileSet(CFile* inFile);
@@ -83,10 +84,8 @@ public:
 	unsigned        BufRdAdv4(unsigned long &nOffset,bool bByteSwap);
 
 
-	CString			BufReadStr(unsigned long nPosition);
-	CString			BufReadUniStr(unsigned long nPosition);
-	CString			BufReadUniStr2(unsigned long nPos, unsigned nBufLen);
-	CString			BufReadStrn(unsigned long nPosition,unsigned nLen);
+	char *			BufReadStr(unsigned long nPosition);
+	char *			BufReadStrn(unsigned long nPosition,unsigned nLen);
 
 	bool			BufSearch(unsigned long nStartPos, unsigned nSearchVal, unsigned nSearchLen,
 						   bool bDirFwd, unsigned long &nFoundPos);
@@ -120,7 +119,7 @@ private:
 	unsigned		m_nOverlayNum;
 	sOverlay*		m_psOverlay[NUM_OVERLAYS];
 
-	CStatusBar*		m_pStatBar;
+	void *		m_pStatBar;
 
 	bool			m_bBufOK;
 	unsigned long	m_nPosEof;	// Byte count at EOF

@@ -37,19 +37,19 @@ public:
     virtual ~CDIB();
 
 	void			Kill();
-    bool			CreateDIB(DWORD dwWidth,DWORD dwHeight,unsigned short nBits);
-    bool			CreateDIBFromBitmap(CDC* pDC);
-    void			InitializeColors();
-    int				GetDIBCols() const;
-    void*			GetDIBBitArray() const;
-    bool			CopyDIB(CDC* pDestDC,int x,int y,float scale=1);
-	bool			CopyDibDblBuf(CDC* pDestDC, int x, int y,CRect* rectClient, float scale);
-    bool			CopyDIBsmall(CDC* pDestDC,int x,int y,float scale=1);
-	bool			CopyDibPart(CDC* pDestDC,CRect rectImg,CRect* rectClient, float scale);
+    // bool			CreateDIB(DWORD dwWidth,DWORD dwHeight,unsigned short nBits);
+    // bool			CreateDIBFromBitmap(CDC* pDC);
+    // void			InitializeColors();
+    // int				GetDIBCols() const;
+    // void*			GetDIBBitArray() const;
+    // bool			CopyDIB(CDC* pDestDC,int x,int y,float scale=1);
+	// bool			CopyDibDblBuf(CDC* pDestDC, int x, int y,CRect* rectClient, float scale);
+    // bool			CopyDIBsmall(CDC* pDestDC,int x,int y,float scale=1);
+	// bool			CopyDibPart(CDC* pDestDC,CRect rectImg,CRect* rectClient, float scale);
 
 public:
-    CBitmap			m_bmBitmap;
+    // CBitmap			m_bmBitmap;
 
 private:
-    LPBITMAPINFO	m_pDIB;
+    // LPBITMAPINFO	m_pDIB;
 };

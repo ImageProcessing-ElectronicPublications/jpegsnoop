@@ -134,7 +134,7 @@ class CjfifDecode
 {
 	// Constructor & Initialization
 	public:
-	CjfifDecode(CDocLog* pLog,CwindowBuf* pWBuf,CimgDecode* pImgDec);
+	CjfifDecode(CDocLog* pLog,CwindowBuf* pWBuf,CimgDecode* pImgDec, CDbSigs* DbSigs);
 	~CjfifDecode();
 
 public:
@@ -248,7 +248,7 @@ private:
 
 	// UI elements
 public:
-	void			SetStatusBar(CStatusBar* pStatBar);
+	void			SetStatusBar(void* pStatBar);
 private:
 	void			SetStatusText(CString strText);
 	void			DecodeErrCheck(bool bRet);
@@ -260,7 +260,6 @@ private:
 
 private:
 	// Configuration
-	CSnoopConfig*	m_pAppConfig;
 	bool			m_bVerbose;
 	bool			m_bOutputDB;
 	bool			m_bBufFakeDHT;		// Flag to redirect DHT read to AVI DHT over Buffer content
@@ -273,7 +272,6 @@ private:
 
 	// UI elements & log
 	CDocLog*		m_pLog;
-	CStatusBar*		m_pStatBar;		// Link to status bar
 
 	// Constants
 	static const BYTE				m_abMJPGDHTSeg[JFIF_DHT_FAKE_SZ];	// Motion JPEG DHT
@@ -408,6 +406,7 @@ private:
 
 	teEdited		m_eImgEdited;			// Image edited? 0 = unset, 1 = yes, etc.
 
+	CDbSigs*		m_pDbSigs;
+
 
 };
-

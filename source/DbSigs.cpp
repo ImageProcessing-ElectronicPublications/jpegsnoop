@@ -16,6 +16,9 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+
+#include "../main/WindowsClasses.h"
+
 #include "stdafx.h"
 #include "DbSigs.h"
 #include "General.h"
@@ -62,7 +65,7 @@ CDbSigs::CDbSigs()
 	m_nSigListNum = 0;
 	while (!bDone)
 	{
-		if (!_tcscmp(m_sSigList[m_nSigListNum].strXMake,_T("*")))
+		if (!strcmp(m_sSigList[m_nSigListNum].strXMake,_T("*")))
 			bDone = true;
 		else
 			m_nSigListNum++;
@@ -300,292 +303,266 @@ bool CDbSigs::BufWriteStr(PBYTE pBuf,CString strIn,unsigned nMaxBytes,bool bUni,
 }
 
 
-void CDbSigs::DatabaseExtraLoad()
-{
-	CFile		*pInFile = NULL;
-	PBYTE		pBuf = NULL;
-	unsigned	nBufLenBytes = 0;
-	unsigned	nBufOffset = 0;
-	CString		strError;
+// void CDbSigs::DatabaseExtraLoad()
+// {
+// 	CFile		*pInFile = NULL;
+// 	PBYTE		pBuf = NULL;
+// 	unsigned	nBufLenBytes = 0;
+// 	unsigned	nBufOffset = 0;
+// 	CString		strError;
 
-	ASSERT(m_strDbDir != _T(""));
-	if (m_strDbDir == _T("")) {
-		return;
-	}
+// 	ASSERT(m_strDbDir != _T(""));
+// 	if (m_strDbDir == _T("")) {
+// 		return;
+// 	}
 
-	// Retrieve from environment user profile path.
-	// FIXME: Increase maximum file path size
-	TCHAR szFilePathName[200];
-	_stprintf_s(szFilePathName,_T("%s\\%s"),(LPCTSTR)m_strDbDir,DAT_FILE);
+// 	// Retrieve from environment user profile path.
+// 	// FIXME: Increase maximum file path size
+// 	TCHAR szFilePathName[200];
+// 	sprintf(szFilePathName,_T("%s\\%s"),(LPCTSTR)m_strDbDir,DAT_FILE);
 
-	// Open the input file
-	try
-	{
-		// Open specified file
-		pInFile = new CFile(szFilePathName, CFile::modeRead );
-	}
-	catch (CFileException* e)
-	{
-		TCHAR		msg[MAX_BUF_EX_ERR_MSG];
-		e->GetErrorMessage(msg,MAX_BUF_EX_ERR_MSG);
-		e->Delete();
+// 	// Open the input file
+//  // Open specified file
+//  pInFile = new CFile(szFilePathName, CFile::modeRead );
 
-		// To avoid any user confusion, we disable this warning message if this
-		// is the first time the program has been run (when we would expect that the user
-		// database is not present). After first run, the user database will have been
-		// created.
-		// Take from SnoopConfig.bEulaAccepted
-		if (!m_bFirstRun) {
-			strError.Format(_T("Couldn't find User Signature Database\n\n[%s]\n\nCreating default database"),(LPCTSTR)msg);
-			OutputDebugString(strError);
-			AfxMessageBox(strError);
-		}
-		pInFile = NULL;
+// 	// Allocate the input buffer
+// 	pBuf = new BYTE [MAX_BUF_SET_FILE];
+// 	ASSERT(pBuf);
 
-		// Now create default database file in current DB location
-		DatabaseExtraStore();
+// 	// Load the buffer
+// 	nBufLenBytes = pInFile->Read(pBuf,MAX_BUF_SET_FILE);
 
-		return;
-	}
+// 	ASSERT(nBufLenBytes>0);
+// 	// TODO: Error check for config file longer than max buffer!
+// 	ASSERT(nBufLenBytes<MAX_BUF_SET_FILE);
+// 	nBufOffset = 0;
 
-	// Allocate the input buffer
-	pBuf = new BYTE [MAX_BUF_SET_FILE];
-	ASSERT(pBuf);
+// 	CString		strLine;
+// 	CString		strParam;
+// 	CString		strVal;
 
-	// Load the buffer
-	nBufLenBytes = pInFile->Read(pBuf,MAX_BUF_SET_FILE);
+// 	CString		strTmp;
+// 	CString		strVer;
+// 	CString		strSec;
 
-	ASSERT(nBufLenBytes>0);
-	// TODO: Error check for config file longer than max buffer!
-	ASSERT(nBufLenBytes<MAX_BUF_SET_FILE);
-	nBufOffset = 0;
+// 	//bool		bErr = false;
+// 	bool		bDone = false;
+// 	BOOL		bRet;
 
-	CString		strLine;
-	CString		strParam;
-	CString		strVal;
+// 	unsigned	nBufOffsetTmp;
+// 	bool		bFileOk = false;
+// 	bool		bFileModeUni = false;
 
-	CString		strTmp;
-	CString		strVer;
-	CString		strSec;
+// 	bool		bValid;
 
-	//bool		bErr = false;
-	bool		bDone = false;
-	BOOL		bRet;
-
-	unsigned	nBufOffsetTmp;
-	bool		bFileOk = false;
-	bool		bFileModeUni = false;
-
-	bool		bValid;
-
-	unsigned	nNumLoad = 0;				// Number of entries to read
-	CompSig		sDbLocalEntry;				// Temp entry for load
-	bool		bDbLocalEntryFound;			// Temp entry already in built-in DB?
-	bool		bDbLocalTrimmed = false;	// Did we trim down the DB?
+// 	unsigned	nNumLoad = 0;				// Number of entries to read
+// 	CompSig		sDbLocalEntry;				// Temp entry for load
+// 	bool		bDbLocalEntryFound;			// Temp entry already in built-in DB?
+// 	bool		bDbLocalTrimmed = false;	// Did we trim down the DB?
 
 
-	// Determine if config file is in Unicode or SBCS
-	// If the file is in SBCS (legacy) then back it up
-	// and then write-back in unicode mode.
+// 	// Determine if config file is in Unicode or SBCS
+// 	// If the file is in SBCS (legacy) then back it up
+// 	// and then write-back in unicode mode.
 
-	// Test unicode mode
-	nBufOffsetTmp = 0;
-	bRet = BufReadStr(pBuf,strLine,nBufLenBytes,true,nBufOffsetTmp);
-	if (strLine.Compare(_T("JPEGsnoop"))==0) {
-		bFileOk = true;
-		bFileModeUni = true;
-		nBufOffset = nBufOffsetTmp;
-	}
+// 	// Test unicode mode
+// 	nBufOffsetTmp = 0;
+// 	bRet = BufReadStr(pBuf,strLine,nBufLenBytes,true,nBufOffsetTmp);
+// 	if (strLine.Compare(_T("JPEGsnoop"))==0) {
+// 		bFileOk = true;
+// 		bFileModeUni = true;
+// 		nBufOffset = nBufOffsetTmp;
+// 	}
 
-	// Test SBCS mode
-	nBufOffsetTmp = 0;
-	bRet = BufReadStr(pBuf,strLine,nBufLenBytes,false,nBufOffsetTmp);
-	if (strLine.Compare(_T("JPEGsnoop"))==0) {
-		bFileOk = true;
-		nBufOffset = nBufOffsetTmp;
-	}
+// 	// Test SBCS mode
+// 	nBufOffsetTmp = 0;
+// 	bRet = BufReadStr(pBuf,strLine,nBufLenBytes,false,nBufOffsetTmp);
+// 	if (strLine.Compare(_T("JPEGsnoop"))==0) {
+// 		bFileOk = true;
+// 		nBufOffset = nBufOffsetTmp;
+// 	}
 
-	if (!bFileOk) {
-		strError.Format(_T("WARNING: User Signature Database corrupt\n[%s]\nProceeding with defaults."),
-			(LPCTSTR)szFilePathName);
-		OutputDebugString(strError);
-		AfxMessageBox(strError);
-		// Close the file to ensure no sharing violation
-		if (pInFile) {
-			pInFile->Close();
-			delete pInFile;
-			pInFile = NULL;
-		}
-		// Copy old config file
-		TCHAR szFilePathNameBak[200];
-		_stprintf_s(szFilePathNameBak,_T("%s\\%s.bak"),(LPCTSTR)m_strDbDir,DAT_FILE);
-		CopyFile(szFilePathName,szFilePathNameBak,false);
-		// Now rewrite file in latest version
-		DatabaseExtraStore();
-		// Notify user
-		strTmp.Format(_T("Created default User Signature Database. Backup of old DB in [%s]"),szFilePathNameBak);
-		AfxMessageBox(strTmp);
-		return;
-	}
+// 	if (!bFileOk) {
+// 		strError.Format(_T("WARNING: User Signature Database corrupt\n[%s]\nProceeding with defaults."),
+// 			(LPCTSTR)szFilePathName);
+// 		OutputDebugString(strError);
+// 		// AfxMessageBox(strError);
+// 		// Close the file to ensure no sharing violation
+// 		if (pInFile) {
+// 			pInFile->Close();
+// 			delete pInFile;
+// 			pInFile = NULL;
+// 		}
+// 		// Copy old config file
+// 		TCHAR szFilePathNameBak[200];
+// 		sprintf(szFilePathNameBak,_T("%s\\%s.bak"),(LPCTSTR)m_strDbDir,DAT_FILE);
+// 		CopyFile(szFilePathName,szFilePathNameBak,false);
+// 		// Now rewrite file in latest version
+// 		DatabaseExtraStore();
+// 		// Notify user
+// 		strTmp.Format(_T("Created default User Signature Database. Backup of old DB in [%s]"),szFilePathNameBak);
+// 		// AfxMessageBox(strTmp);
+// 		return;
+// 	}
 	
-	m_nSigListExtraNum = 0;
+// 	m_nSigListExtraNum = 0;
 
-	// Version
-	bRet = BufReadStr(pBuf,strVer,nBufLenBytes,bFileModeUni,nBufOffset);
-	bValid = false;
-	if (strVer == _T("00")) { bValid = false; }
-	if (strVer == _T("01")) { bValid = true; }
-	if (strVer == _T("02")) { bValid = true; }
-	if (strVer == _T("03")) { bValid = true; }
+// 	// Version
+// 	bRet = BufReadStr(pBuf,strVer,nBufLenBytes,bFileModeUni,nBufOffset);
+// 	bValid = false;
+// 	if (strVer == _T("00")) { bValid = false; }
+// 	if (strVer == _T("01")) { bValid = true; }
+// 	if (strVer == _T("02")) { bValid = true; }
+// 	if (strVer == _T("03")) { bValid = true; }
 
-	// Should consider trimming down local database if same entry
-	// exists in built-in database (for example, user starts running
-	// new version of tool).
+// 	// Should consider trimming down local database if same entry
+// 	// exists in built-in database (for example, user starts running
+// 	// new version of tool).
 
-	while (!bDone && bValid) {
+// 	while (!bDone && bValid) {
 
-		// Read section header
+// 		// Read section header
 
-		bRet = BufReadStr(pBuf,strSec,nBufLenBytes,bFileModeUni,nBufOffset);
+// 		bRet = BufReadStr(pBuf,strSec,nBufLenBytes,bFileModeUni,nBufOffset);
 
-		if (strSec == _T("*DB*")) {
-			// Read DB count
-			bRet = BufReadNum(pBuf,nNumLoad,nBufLenBytes,nBufOffset);
+// 		if (strSec == _T("*DB*")) {
+// 			// Read DB count
+// 			bRet = BufReadNum(pBuf,nNumLoad,nBufLenBytes,nBufOffset);
 
-			// For each entry that we read, we should double-check to see
-			// if we already have it in the built-in DB. If we do, then
-			// don't add it to the runtime DB, and mark the local DB as
-			// needing trimming. If so, rewrite the DB.
+// 			// For each entry that we read, we should double-check to see
+// 			// if we already have it in the built-in DB. If we do, then
+// 			// don't add it to the runtime DB, and mark the local DB as
+// 			// needing trimming. If so, rewrite the DB.
 
-			for (unsigned ind=0;ind<nNumLoad;ind++) {
+// 			for (unsigned ind=0;ind<nNumLoad;ind++) {
 
-				sDbLocalEntry.bValid = false;
-				sDbLocalEntry.strXMake = _T("");
-				sDbLocalEntry.strXModel = _T("");
-				sDbLocalEntry.strUmQual = _T("");
-				sDbLocalEntry.strCSig = _T("");
-				sDbLocalEntry.strCSigRot = _T("");
-				sDbLocalEntry.strXSubsamp = _T("");
-				sDbLocalEntry.strMSwTrim = _T("");
-				sDbLocalEntry.strMSwDisp = _T("");
+// 				sDbLocalEntry.bValid = false;
+// 				sDbLocalEntry.strXMake = _T("");
+// 				sDbLocalEntry.strXModel = _T("");
+// 				sDbLocalEntry.strUmQual = _T("");
+// 				sDbLocalEntry.strCSig = _T("");
+// 				sDbLocalEntry.strCSigRot = _T("");
+// 				sDbLocalEntry.strXSubsamp = _T("");
+// 				sDbLocalEntry.strMSwTrim = _T("");
+// 				sDbLocalEntry.strMSwDisp = _T("");
 
-				bDbLocalEntryFound = false;
+// 				bDbLocalEntryFound = false;
 
 
-				if (strVer == _T("01")) {
-					// For version 01:
+// 				if (strVer == _T("01")) {
+// 					// For version 01:
 
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strXMake,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strXModel,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strXMake,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strXModel,nBufLenBytes,bFileModeUni,nBufOffset);
 
-					strTmp = _T("");
-					bRet = BufReadStr(pBuf,strTmp,nBufLenBytes,bFileModeUni,nBufOffset);
-					sDbLocalEntry.eEditor = static_cast<teEditor>(_tstoi(strTmp));
+// 					strTmp = _T("");
+// 					bRet = BufReadStr(pBuf,strTmp,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					sDbLocalEntry.eEditor = static_cast<teEditor>(_tstoi(strTmp));
 
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strUmQual,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strCSig,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strUmQual,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strCSig,nBufLenBytes,bFileModeUni,nBufOffset);
 
-					// In older version of DB, these entries won't exist
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strXSubsamp,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwTrim,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwDisp,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					// In older version of DB, these entries won't exist
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strXSubsamp,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwTrim,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwDisp,nBufLenBytes,bFileModeUni,nBufOffset);
 
-				} else if ( (strVer == _T("02")) || (strVer == _T("03")) ) {
+// 				} else if ( (strVer == _T("02")) || (strVer == _T("03")) ) {
 
-					// For version 02 or 03:
-					// NOTE: Difference between 02 and 03:
-					//       - 02 : SBCS format
-					//       - 03 : Unicode format
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strXMake,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strXModel,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					// For version 02 or 03:
+// 					// NOTE: Difference between 02 and 03:
+// 					//       - 02 : SBCS format
+// 					//       - 03 : Unicode format
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strXMake,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strXModel,nBufLenBytes,bFileModeUni,nBufOffset);
 
-					strTmp = _T("");
-					bRet = BufReadStr(pBuf,strTmp,nBufLenBytes,bFileModeUni,nBufOffset);
-					sDbLocalEntry.eEditor = static_cast<teEditor>(_tstoi(strTmp));
+// 					strTmp = _T("");
+// 					bRet = BufReadStr(pBuf,strTmp,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					sDbLocalEntry.eEditor = static_cast<teEditor>(_tstoi(strTmp));
 
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strUmQual,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strCSig,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strCSigRot,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strUmQual,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strCSig,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strCSigRot,nBufLenBytes,bFileModeUni,nBufOffset);
 
 					
-					// In older version of DB, these entries won't exist
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strXSubsamp,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwTrim,nBufLenBytes,bFileModeUni,nBufOffset);
-					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwDisp,nBufLenBytes,bFileModeUni,nBufOffset);
-				}
+// 					// In older version of DB, these entries won't exist
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strXSubsamp,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwTrim,nBufLenBytes,bFileModeUni,nBufOffset);
+// 					bRet = BufReadStr(pBuf,sDbLocalEntry.strMSwDisp,nBufLenBytes,bFileModeUni,nBufOffset);
+// 				}
 
-				// -------------------------------------------------------
-
-
-				// Does the entry already exist in the internal DB?
-				bDbLocalEntryFound = SearchSignatureExactInternal(sDbLocalEntry.strXMake,sDbLocalEntry.strXModel,sDbLocalEntry.strCSig);
-
-				if (!bDbLocalEntryFound) {
-					// Add it!
-					m_sSigListExtra[m_nSigListExtraNum].bValid    = true;
-					m_sSigListExtra[m_nSigListExtraNum].strXMake    = sDbLocalEntry.strXMake;
-					m_sSigListExtra[m_nSigListExtraNum].strXModel   = sDbLocalEntry.strXModel;
-					m_sSigListExtra[m_nSigListExtraNum].eEditor  = sDbLocalEntry.eEditor;
-					m_sSigListExtra[m_nSigListExtraNum].strUmQual   = sDbLocalEntry.strUmQual;
-					m_sSigListExtra[m_nSigListExtraNum].strCSig     = sDbLocalEntry.strCSig;
-					m_sSigListExtra[m_nSigListExtraNum].strCSigRot  = sDbLocalEntry.strCSigRot;
-
-					m_sSigListExtra[m_nSigListExtraNum].strXSubsamp = sDbLocalEntry.strXSubsamp;
-					m_sSigListExtra[m_nSigListExtraNum].strMSwTrim  = sDbLocalEntry.strMSwTrim;
-					m_sSigListExtra[m_nSigListExtraNum].strMSwDisp  = sDbLocalEntry.strMSwDisp;
-					m_nSigListExtraNum++;
-				} else {
-					bDbLocalTrimmed = true;
-				}
-
-			}
-		} else if (strSec == _T("*Z*")) {
-			bDone = true;
-		} else {
-			bValid = false;
-		} // strSec
-
-	} // while
+// 				// -------------------------------------------------------
 
 
+// 				// Does the entry already exist in the internal DB?
+// 				bDbLocalEntryFound = SearchSignatureExactInternal(sDbLocalEntry.strXMake,sDbLocalEntry.strXModel,sDbLocalEntry.strCSig);
+
+// 				if (!bDbLocalEntryFound) {
+// 					// Add it!
+// 					m_sSigListExtra[m_nSigListExtraNum].bValid    = true;
+// 					m_sSigListExtra[m_nSigListExtraNum].strXMake    = sDbLocalEntry.strXMake;
+// 					m_sSigListExtra[m_nSigListExtraNum].strXModel   = sDbLocalEntry.strXModel;
+// 					m_sSigListExtra[m_nSigListExtraNum].eEditor  = sDbLocalEntry.eEditor;
+// 					m_sSigListExtra[m_nSigListExtraNum].strUmQual   = sDbLocalEntry.strUmQual;
+// 					m_sSigListExtra[m_nSigListExtraNum].strCSig     = sDbLocalEntry.strCSig;
+// 					m_sSigListExtra[m_nSigListExtraNum].strCSigRot  = sDbLocalEntry.strCSigRot;
+
+// 					m_sSigListExtra[m_nSigListExtraNum].strXSubsamp = sDbLocalEntry.strXSubsamp;
+// 					m_sSigListExtra[m_nSigListExtraNum].strMSwTrim  = sDbLocalEntry.strMSwTrim;
+// 					m_sSigListExtra[m_nSigListExtraNum].strMSwDisp  = sDbLocalEntry.strMSwDisp;
+// 					m_nSigListExtraNum++;
+// 				} else {
+// 					bDbLocalTrimmed = true;
+// 				}
+
+// 			}
+// 		} else if (strSec == _T("*Z*")) {
+// 			bDone = true;
+// 		} else {
+// 			bValid = false;
+// 		} // strSec
+
+// 	} // while
 
 
-	// ----------------------
 
-	if (pInFile) {
-		pInFile->Close();
-		delete pInFile;
-		pInFile = NULL;
-	}
 
-	if (pBuf) {
-		delete [] pBuf;
-		pBuf = NULL;
-	}
+// 	// ----------------------
 
-	// If we did make changes to the database (trim), then rewrite it!
-	// Ensure that we have closed the file above before we rewrite it
-	// otherwise we could end up with a sharing violation
-	if (bDbLocalTrimmed) {
-		DatabaseExtraStore();
-	}
+// 	if (pInFile) {
+// 		pInFile->Close();
+// 		delete pInFile;
+// 		pInFile = NULL;
+// 	}
 
-	// Now is this an old config file version? If so,
-	// create a backup and then rewrite the new version
-	if (bValid) {
-		if (strVer != DB_VER_STR) {
-			// Copy old config file
-			TCHAR szFilePathNameBak[200];
-			_stprintf_s(szFilePathNameBak,_T("%s\\%s.bak"),(LPCTSTR)m_strDbDir,DAT_FILE);
-			CopyFile(szFilePathName,szFilePathNameBak,false);
-			// Now rewrite file in latest version
-			DatabaseExtraStore();
-			// Notify user
-			strError.Format(_T("Upgraded User Signature Database. Backup in:\n%s"),szFilePathNameBak);
-			AfxMessageBox(strError);
-		}
-	}
-}
+// 	if (pBuf) {
+// 		delete [] pBuf;
+// 		pBuf = NULL;
+// 	}
+
+// 	// If we did make changes to the database (trim), then rewrite it!
+// 	// Ensure that we have closed the file above before we rewrite it
+// 	// otherwise we could end up with a sharing violation
+// 	if (bDbLocalTrimmed) {
+// 		DatabaseExtraStore();
+// 	}
+
+// 	// Now is this an old config file version? If so,
+// 	// create a backup and then rewrite the new version
+// 	if (bValid) {
+// 		if (strVer != DB_VER_STR) {
+// 			// Copy old config file
+// 			TCHAR szFilePathNameBak[200];
+// 			sprintf(szFilePathNameBak,_T("%s\\%s.bak"),(LPCTSTR)m_strDbDir,DAT_FILE);
+// 			CopyFile(szFilePathName,szFilePathNameBak,false);
+// 			// Now rewrite file in latest version
+// 			DatabaseExtraStore();
+// 			// Notify user
+// 			strError.Format(_T("Upgraded User Signature Database. Backup in:\n%s"),szFilePathNameBak);
+// 			// AfxMessageBox(strError);
+// 		}
+// 	}
+// }
 
 void CDbSigs::DatabaseExtraClean()
 {
@@ -620,27 +597,12 @@ void CDbSigs::DatabaseExtraStore()
 
 	// Retrieve from environment user profile path.
 	TCHAR szFilePathName[200];
-	_stprintf_s(szFilePathName,_T("%s\\%s"),(LPCTSTR)m_strDbDir,DAT_FILE);
+	sprintf(szFilePathName,_T("%s\\%s"),(LPCTSTR)m_strDbDir.GetString(),DAT_FILE);
 
 
 	// Open the output file
-	try
-	{
-		// Open specified file
-		pOutFile = new CFile(szFilePathName, CFile::modeWrite | CFile::typeBinary | CFile::modeCreate );
-	}
-	catch (CFileException* e)
-	{
-		CString		strError;
-		TCHAR		msg[MAX_BUF_EX_ERR_MSG];
-		e->GetErrorMessage(msg,MAX_BUF_EX_ERR_MSG);
-		e->Delete();
-		strError.Format(_T("ERROR: Couldn't open file: [%s]"),(LPCTSTR)msg);
-		OutputDebugString(strError);
-		AfxMessageBox(strError);
-		pOutFile = NULL;
-		return;
-	}
+	// Open specified file
+	pOutFile = new CFile(szFilePathName, CFile::modeWrite | CFile::typeBinary | CFile::modeCreate );
 
 	// Allocate the output buffer
 	pBuf = new BYTE [MAX_BUF_SET_FILE];
@@ -724,7 +686,7 @@ void CDbSigs::DatabaseExtraAdd(CString strExifMake,CString strExifModel,
 	if (m_nSigListExtraNum >= DBEX_ENTRIES_MAX) {
 		CString strTmp;
 		strTmp.Format(_T("ERROR: Can only store maximum of %u extra signatures in local DB"),DBEX_ENTRIES_MAX);
-		AfxMessageBox(strTmp);
+		// AfxMessageBox(strTmp);
 		return;
 	}
 
@@ -879,6 +841,17 @@ void CDbSigs::SetDbDir(CString strDbDir)
 }
 
 
+char * _tcschr(char * str, char C)
+{
+	uint64_t index = 0;
+	while (str[index] && str[index] != C){
+		if (str[index] == C) return str + index;
+		index++;
+	}
+
+	return NULL;
+}
+
 // Search exceptions for Make/Model in list of ones that don't have Makernotes
 bool CDbSigs::LookupExcMmNoMkr(CString strMake,CString strModel)
 {
@@ -919,7 +892,7 @@ bool CDbSigs::LookupExcMmNoMkr(CString strMake,CString strModel)
 						nCompareLen = _tcslen(m_sExcMmNoMkrList[nInd].strXModel);
 					}
 
-					if (_tcsnccmp(m_sExcMmNoMkrList[nInd].strXModel,strModel,nCompareLen) != 0) {
+					if (strncmp(m_sExcMmNoMkrList[nInd].strXModel,strModel,nCompareLen) != 0) {
 						// No match
 					} else {
 						// Matched as well, we're bDone

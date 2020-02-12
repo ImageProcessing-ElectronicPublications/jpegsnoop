@@ -79,9 +79,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "stdafx.h" //CAL! Added to avoid compile error C1010
+// #include "stdafx.h" //CAL! Added to avoid compile error C1010
 
-#include "MD5.h"
+#include "Md5.h"
 
 /* Padding */
 static unsigned char MD5_PADDING[64] = {

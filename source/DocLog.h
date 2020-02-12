@@ -25,45 +25,49 @@
 
 #pragma once
 
+#include "../main/WindowsClasses.h"
+#include <stdio.h>
+
 class CDocLog
 {
 public:
 	CDocLog();
 	~CDocLog(void);
 
-	void		AddLine(CString str);
-	void		AddLineHdr(CString str);
-	void		AddLineHdrDesc(CString str);
-	void		AddLineWarn(CString str);
-	void		AddLineErr(CString str);
-	void		AddLineGood(CString str);
+	void		AddLine(const char * str);
+	void		AddLineHdr(const char * str);
+	void		AddLineHdrDesc(const char * str);
+	void		AddLineWarn(const char * str);
+	void		AddLineErr(const char * str);
+	void		AddLineGood(const char * str);
 
 	void		Enable();
 	void		Disable();
 	void		SetQuickMode(bool bQuick);
 	bool		GetQuickMode();
 
-	void		SetDoc(CDocument *pDoc);
+	// void		SetDoc(CDocument *pDoc);
 	void		Clear();
 
 	unsigned	GetNumLinesLocal();
-	bool		GetLineLogLocal(unsigned nLine,CString &strOut,COLORREF &sCol);
+	// bool	GetLineLogLocal(unsigned nLine,char * &strOut,COLORREF &sCol);
 
-	void		DoLogSave(CString strLogName);
-
-private:
-	unsigned	AppendToLogLocal(CString strTxt, COLORREF sColor);
+	// void		DoLogSave(char * strLogName);
 
 private:
+	unsigned	AppendToLogLocal(const char * strTxt, COLORREF sColor);
 
-	bool			m_bUseDoc;		// Use Document or local buffer
-	CDocument*		m_pDoc;
-	bool			m_bEn;
+private:
 
-	// Local buffer
-	CStringArray	m_saLogQuickTxt;
-	CUIntArray		m_naLogQuickCol;
+	FILE * logFile;
+	// bool			m_bUseDoc;		// Use Document or local buffer
+	// CDocument*		m_pDoc;
+	// bool			m_bEn;
 
-	bool			m_bLogQuickMode;	// In m_bUseDoc=TRUE, do we write to local buffer instead?
+	// // Local buffer
+	// CStringArray	m_saLogQuickTxt;
+	// CUIntArray		m_naLogQuickCol;
+
+	// bool			m_bLogQuickMode;	// In m_bUseDoc=TRUE, do we write to local buffer instead?
 
 };

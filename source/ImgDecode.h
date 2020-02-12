@@ -37,7 +37,7 @@
 
 #include "DocLog.h"
 #include "WindowBuf.h"
-#include "afxwin.h"
+#include "../main/WindowsClasses.h"
 #include "Dib.h"
 
 #include <map>
@@ -290,7 +290,7 @@ public:
 	void		Reset();		// Called during start of SOS decode
 	void		ResetState();	// Called at start of new JFIF Decode
 
-	void		SetStatusBar(CStatusBar* pStatBar);
+	void		SetStatusBar(void* pStatBar);
 	void		DecodeScanImg(unsigned bStart,bool bDisplay,bool bQuiet);
 
 	void		DrawHistogram(bool bQuiet,bool bDumpHistoY);
@@ -473,7 +473,7 @@ private:
 	CPoint				m_aptMarkersBlk[MAX_BLOCK_MARKERS];	// MCU Markers
 
 
-	CStatusBar*			m_pStatBar;			// Link to status bar
+	void*			m_pStatBar;			// Link to status bar
 	CString				m_strStatusYcc;		// Status bar text: YCC
 	CString				m_strStatusMcu;		// Status bar text: MCU
 	CString				m_strStatusFilePos;	// Status bar text: File Position
@@ -506,15 +506,12 @@ private:
 
 public: // FIXME (workaround)
 	bool				m_bDibTempReady;
-	CDIB				m_pDibTemp;				// Temporary version for display
 	bool				m_bPreviewIsJpeg;		// Is the preview image from decoded JPEG?
 private:
 
 	bool				m_bDibHistRgbReady;
-	CDIB				m_pDibHistRgb;
 
 	bool				m_bDibHistYReady;
-	CDIB				m_pDibHistY;
 
 	bool				m_bDetailVlc;
 	unsigned			m_nDetailVlcX;

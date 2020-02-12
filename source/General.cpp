@@ -16,7 +16,7 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "StdAfx.h"
+#include "stdafx.h"
 
 // ---------------------------------------
 // Global functions
@@ -168,13 +168,13 @@ bool	Str2Uint32(CString strVal,unsigned nBase,unsigned &nVal)
 		if (strVal.SpanIncluding(_T("0123456789ABCDEF")) != strVal) {
 			return false;
 		}
-		nVal = _tcstoul(strVal,NULL,16);
+		nVal = strtoul(strVal.GetString(),NULL,(int)16);
 	} else if (nBase == 10) {
 		// Dec
 		if (strVal.SpanIncluding(_T("0123456789")) != strVal) {
 			return false;
 		}
-		nVal = _tcstoul(strVal,NULL,10);
+		nVal = strtoul(strVal.GetString(),NULL,(int)10);
 	} else {
 		return false;
 	}
