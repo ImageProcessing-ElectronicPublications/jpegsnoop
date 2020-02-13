@@ -1,106 +1,28 @@
-// JPEGsnoop - JPEG Image Decoder & Analysis Utility
-// Copyright (C) 2017 - Calvin Hass
-// http://www.impulseadventure.com/photo/jpeg-snoop.html
-//
-//    This program is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation, either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
+#ifndef MD5_H
+#define MD5_H
 
-// ====================================================================================================
-// SOURCE CODE ACKNOWLEDGEMENT
-// ====================================================================================================
-// The following code is derived from the following project on CodeProject:
-//
-//		Title:		ReHash - A console-based hash calculator
-//		Author:		Dominik Reichl
-//		URL:		http://www.codeproject.com/Articles/3945/ReHash-A-console-based-hash-calculator
-//		Date:		Apr 11, 2003
-//
-// ====================================================================================================
-
-/*
- **********************************************************************
- ** MD5.h                                                            **
- **                                                                  **
- ** - Style modified by Tony Ray, January 2001                       **
- **   Added support for randomizing initialization constants         **
- ** - Style modified by Dominik Reichl, September 2002               **
- **   Optimized code                                                 **
- **                                                                  **
- **********************************************************************
- */
-
-/*
- **********************************************************************
- ** MD5.h -- Header file for implementation of MD5                   **
- ** RSA Data Security, Inc. MD5 Message Digest Algorithm             **
- ** Created: 2/17/90 RLR                                             **
- ** Revised: 12/27/90 SRD,AJ,BSK,JT Reference C version              **
- ** Revised (for MD5): RLR 4/27/91                                   **
- **   -- G modified to have y&~z instead of y&z                      **
- **   -- FF, GG, HH modified to add in last register done            **
- **   -- Access pattern: round 2 works mod 5, round 3 works mod 3    **
- **   -- distinct additive constant for each step                    **
- **   -- round 4 added, working mod 7                                **
- **********************************************************************
- */
-
-/*
- **********************************************************************
- ** Copyright (C) 1990, RSA Data Security, Inc. All rights reserved. **
- **                                                                  **
- ** License to copy and use this software is granted provided that   **
- ** it is identified as the "RSA Data Security, Inc. MD5 Message     **
- ** Digest Algorithm" in all material mentioning or referencing this **
- ** software or this function.                                       **
- **                                                                  **
- ** License is also granted to make and use derivative works         **
- ** provided that such works are identified as "derived from the RSA **
- ** Data Security, Inc. MD5 Message Digest Algorithm" in all         **
- ** material mentioning or referencing the derived work.             **
- **                                                                  **
- ** RSA Data Security, Inc. makes no representations concerning      **
- ** either the merchantability of this software or the suitability   **
- ** of this software for any particular purpose.  It is provided "as **
- ** is" without express or implied warranty of any kind.             **
- **                                                                  **
- ** These notices must be retained in any copies of any part of this **
- ** documentation and/or software.                                   **
- **********************************************************************
- */
-
-#ifndef ___MD5_H___
-#define ___MD5_H___
-
-/* Typedef a 32 bit type */
-#ifndef UINT4
-typedef unsigned long int UINT4;
+#ifdef __alpha
+typedef unsigned int uint32;
+#else
+typedef unsigned long uint32;
 #endif
 
-/* Data structure for MD5 (Message Digest) computation */
-typedef struct {
-	UINT4 i[2];                   /* Number of _bits_ handled mod 2^64 */
-	UINT4 buf[4];                                    /* Scratch buffer */
-	unsigned char in[64];                              /* Input buffer */
-	unsigned char digest[16];     /* Actual digest after MD5Final call */
+struct MD5Context
+{
+    uint32 buf[4];
+    uint32 bits[2];
+    unsigned char in[64];
+};
 
-	unsigned int digest32[4]; //CAL! Added
-} MD5_CTX;
+void MD5Init (struct MD5Context *context);
+void MD5Update (struct MD5Context *context, unsigned char const *buf,
+                unsigned len);
+void MD5Final (unsigned char digest[16], struct MD5Context *ctx);
+void MD5Transform (uint32 buf[4], uint32 const in[16]);
 
-static void MD5_Transform (UINT4 *buf, UINT4 *in);
+/*
+ * This is needed to make RSAREF happy on some MS-DOS compilers.
+ */
+typedef struct MD5Context MD5_CTX;
 
-void MD5Init(MD5_CTX *mdContext, unsigned long pseudoRandomNumber = 0);
-void MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen);
-void MD5Final(MD5_CTX *mdContext);
-
-#endif /* ___MD5_H___ included */
+#endif /* !MD5_H */

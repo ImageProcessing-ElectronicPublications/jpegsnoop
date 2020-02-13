@@ -45,7 +45,7 @@ typedef void * HANDLE;
 #include "stdstr.h"
 typedef CStdStr<char>       CString;
 typedef CStdStr<char>		CStringA;	// a better std::string
-typedef CStdStr<wchar_t>	CStringW;	// a better std::wstring
+typedef CStdStr<uint16_t>	CStringW;	// a better std::wstring
 typedef CStdStr<OLECHAR>	CStringO;	// almost always CStdStringW
 
 #define min(a,b) ( ((a)<(b)) ? (a):(b) )

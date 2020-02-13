@@ -30,15 +30,149 @@ int bOutputScanDump = 1;
 
 #include "WindowBuf.h"
 
-#include "Md5.h"
-
 // #include "windows.h"
 #include "UrlString.h"
 #include "DbSigs.h"
 
 #include "General.h"
 
-
+const uint32_t k[64] = {
+0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee ,
+0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501 ,
+0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be ,
+0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821 ,
+0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa ,
+0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8 ,
+0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed ,
+0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a ,
+0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c ,
+0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70 ,
+0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05 ,
+0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665 ,
+0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039 ,
+0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1 ,
+0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1 ,
+0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391 };
+ 
+// r specifies the per-round shift amounts
+static const uint32_t r[] = {7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+                      5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
+                      4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+                      6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21};
+ 
+// leftrotate function definition
+#define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
+ 
+static void to_bytes(uint32_t val, uint8_t *bytes)
+{
+    bytes[0] = (uint8_t) val;
+    bytes[1] = (uint8_t) (val >> 8);
+    bytes[2] = (uint8_t) (val >> 16);
+    bytes[3] = (uint8_t) (val >> 24);
+}
+ 
+static uint32_t to_int32(const uint8_t *bytes)
+{
+    return (uint32_t) bytes[0]
+        | ((uint32_t) bytes[1] << 8)
+        | ((uint32_t) bytes[2] << 16)
+        | ((uint32_t) bytes[3] << 24);
+}
+ 
+static void md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest) {
+ 
+    // These vars will contain the hash
+    uint32_t h0, h1, h2, h3;
+ 
+    // Message (to prepare)
+    uint8_t *msg = NULL;
+ 
+    size_t new_len, offset;
+    uint32_t w[16];
+    uint32_t a, b, c, d, i, f, g, temp;
+ 
+    // Initialize variables - simple count in nibbles:
+    h0 = 0x67452301;
+    h1 = 0xefcdab89;
+    h2 = 0x98badcfe;
+    h3 = 0x10325476;
+ 
+    //Pre-processing:
+    //append "1" bit to message    
+    //append "0" bits until message length in bits ≡ 448 (mod 512)
+    //append length mod (2^64) to message
+ 
+    for (new_len = initial_len + 1; new_len % (512/8) != 448/8; new_len++)
+        ;
+ 
+    msg = (uint8_t*)malloc(new_len + 8);
+    memcpy(msg, initial_msg, initial_len);
+    msg[initial_len] = 0x80; // append the "1" bit; most significant bit is "first"
+    for (offset = initial_len + 1; offset < new_len; offset++)
+        msg[offset] = 0; // append "0" bits
+ 
+    // append the len in bits at the end of the buffer.
+    to_bytes(initial_len*8, msg + new_len);
+    // initial_len>>29 == initial_len*8>>32, but avoids overflow.
+    to_bytes(initial_len>>29, msg + new_len + 4);
+ 
+    // Process the message in successive 512-bit chunks:
+    //for each 512-bit chunk of message:
+    for(offset=0; offset<new_len; offset += (512/8)) {
+ 
+        // break chunk into sixteen 32-bit words w[j], 0 ≤ j ≤ 15
+        for (i = 0; i < 16; i++)
+            w[i] = to_int32(msg + offset + i*4);
+ 
+        // Initialize hash value for this chunk:
+        a = h0;
+        b = h1;
+        c = h2;
+        d = h3;
+ 
+        // Main loop:
+        for(i = 0; i<64; i++) {
+ 
+            if (i < 16) {
+                f = (b & c) | ((~b) & d);
+                g = i;
+            } else if (i < 32) {
+                f = (d & b) | ((~d) & c);
+                g = (5*i + 1) % 16;
+            } else if (i < 48) {
+                f = b ^ c ^ d;
+                g = (3*i + 5) % 16;          
+            } else {
+                f = c ^ (b | (~d));
+                g = (7*i) % 16;
+            }
+ 
+            temp = d;
+            d = c;
+            c = b;
+            b = b + LEFTROTATE((a + f + k[i] + w[g]), r[i]);
+            a = temp;
+ 
+        }
+ 
+        // Add this chunk's hash to result so far:
+        h0 += a;
+        h1 += b;
+        h2 += c;
+        h3 += d;
+ 
+    }
+ 
+    // cleanup
+    free(msg);
+ 
+    //var char digest[16] := h0 append h1 append h2 append h3 //(Output is in little-endian)
+    to_bytes(h0, digest);
+    to_bytes(h1, digest + 4);
+    to_bytes(h2, digest + 8);
+    to_bytes(h3, digest + 12);
+}
+ 
 
 // Maximum number of component values to extract into array for display
 #define MAX_anValues	64
@@ -5550,7 +5684,7 @@ void CjfifDecode::PrepareSignatureSingle(bool bRotate)
 	CStringA			strHashIn;
 	unsigned char		pHashIn[2000];
 	CStringA			strDqt;
-	MD5_CTX				sMd5;
+	// struct MD5Context mdc;
 	unsigned			nLenHashIn;
 	unsigned			nInd;
 
@@ -5623,6 +5757,7 @@ void CjfifDecode::PrepareSignatureSingle(bool bRotate)
 		strTmp.Format("In%u: [",i/80);
 		strTmp += strHashIn.Mid(i,80);
 		strTmp += "]";
+		puts(strTmp.GetString());
 #ifdef DEBUG_SIG
 		//m_pLog->AddLine(strTmp.GetString());
 #endif
@@ -5634,21 +5769,39 @@ void CjfifDecode::PrepareSignatureSingle(bool bRotate)
 		pHashIn[i] = strHashIn.GetAt(i);
 	}
 	
+	puts("\n\n-------- STRHASHIN 2 ---------");
+	puts((const char *)pHashIn);
+	puts("-------- STRHASHIN 2 ---------\n\n");
+	
 
 	// Calculate the hash
-	MD5Init(&sMd5, 0);
-	MD5Update(&sMd5, pHashIn, nLenHashIn);
-	MD5Final(&sMd5);
+	// MD5Init(&mdc);
+	// MD5Update(&mdc, pHashIn, nLenHashIn);
+	unsigned char dg[16];
+	// MD5Final(dg, &mdc);
+
+	md5(pHashIn, nLenHashIn, dg);
 
 	// Overwrite top 8 bits for signature version number
-	sMd5.digest32[0] = (sMd5.digest32[0] & 0x00FFFFFF) + (DB_SIG_VER << 24);
+	dg[0] = DB_SIG_VER;
+
+printf("!!! HASH = %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", 
+		dg[0], dg[1], dg[2],
+ 		dg[3], dg[4], dg[5], dg[6], dg[7], dg[8], dg[9], dg[10], dg[11],	
+ 		dg[12], dg[13], dg[14], dg[15]);
 
 	// Convert hash to string format
 	// The hexadecimal string is converted to Unicode (if that is build directive)
 	if (!bRotate) {
-		m_strHash.Format(_T("%08X%08X%08X%08X"),sMd5.digest32[0],sMd5.digest32[1],sMd5.digest32[2],sMd5.digest32[3]);
+		m_strHash.Format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", 
+		dg[0], dg[1], dg[2],
+ 		dg[3], dg[4], dg[5], dg[6], dg[7], dg[8], dg[9], dg[10], dg[11],	
+ 		dg[12], dg[13], dg[14], dg[15]);
 	} else {
-		m_strHashRot.Format(_T("%08X%08X%08X%08X"),sMd5.digest32[0],sMd5.digest32[1],sMd5.digest32[2],sMd5.digest32[3]);
+		m_strHashRot.Format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", 
+		dg[0], dg[1], dg[2],
+ 		dg[3], dg[4], dg[5], dg[6], dg[7], dg[8], dg[9], dg[10], dg[11],	
+ 		dg[12], dg[13], dg[14], dg[15]);
 	}
 
 }
@@ -5672,7 +5825,7 @@ void CjfifDecode::PrepareSignatureThumbSingle(bool bRotate)
 	CStringA			strHashIn;
 	unsigned char		pHashIn[2000];
 	CStringA			strDqt;
-	MD5_CTX				sMd5;
+	// struct MD5Context mdc;
 	unsigned			nLenHashIn;
 	unsigned			nInd;
 
@@ -5740,8 +5893,9 @@ void CjfifDecode::PrepareSignatureThumbSingle(bool bRotate)
 		strTmp.Format("In%u: [",i/80);
 		strTmp += strHashIn.Mid(i,80);
 		strTmp += "]";
+		// puts(strTmp.GetString());
 #ifdef DEBUG_SIG
-		//m_pLog->AddLine(strTmp.GetString());
+		// m_pLog->AddLine(strTmp.GetString());
 #endif
 	}
 
@@ -5750,20 +5904,33 @@ void CjfifDecode::PrepareSignatureThumbSingle(bool bRotate)
 	for (unsigned i=0;i<nLenHashIn;i++) {
 		pHashIn[i] = strHashIn.GetAt(i);
 	}
+	
+	// puts("\n\n-------- STRHASHIN 2 ---------");
+	// puts((const char *)pHashIn);
+	// puts("-------- STRHASHIN 2 ---------\n\n");
 
 	// Calculate the hash
-	MD5Init(&sMd5, 0);
-	MD5Update(&sMd5, pHashIn, nLenHashIn);
-	MD5Final(&sMd5);
+	// MD5Init(&mdc);
+	// MD5Update(&mdc, pHashIn, nLenHashIn);
+	unsigned char dg[16];
+	// MD5Final(dg, &mdc);
+
+	md5(pHashIn, nLenHashIn, dg);
 
 	// Overwrite top 8 bits for signature version number
-	sMd5.digest32[0] = (sMd5.digest32[0] & 0x00FFFFFF) + (DB_SIG_VER << 24);
+	dg[0] = DB_SIG_VER;
 
 	// Convert hash to string format
 	if (!bRotate) {
-		m_strHashThumb.Format(_T("%08X%08X%08X%08X"),sMd5.digest32[0],sMd5.digest32[1],sMd5.digest32[2],sMd5.digest32[3]);
+		m_strHashThumb.Format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
+		dg[0], dg[1], dg[2],
+ 		dg[3], dg[4], dg[5], dg[6], dg[7], dg[8], dg[9], dg[10], dg[11],	
+ 		dg[12], dg[13], dg[14], dg[15]);
 	} else {
-		m_strHashThumbRot.Format(_T("%08X%08X%08X%08X"),sMd5.digest32[0],sMd5.digest32[1],sMd5.digest32[2],sMd5.digest32[3]);
+		m_strHashThumbRot.Format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
+		dg[0], dg[1], dg[2],
+ 		dg[3], dg[4], dg[5], dg[6], dg[7], dg[8], dg[9], dg[10], dg[11],	
+ 		dg[12], dg[13], dg[14], dg[15]);
 	}
 
 }
@@ -5954,10 +6121,15 @@ bool CjfifDecode::CompareSignature(bool bQuiet=false)
 			curMatchSw = true;
 		}
 
+		printf("    hash = %s\n", m_strHash.GetString());
+		printf("rot hash = %s\n", m_strHashRot.GetString());
+
+		const char * p_sig = pEntry.strCSig.GetString(), * p_sigrot = pEntry.strCSigRot.GetString();
+		const char * m_sig = m_strHash.GetString(), * m_sigrot = m_strHashRot.GetString();
 
 		// Compare signature (and CSS for digicams)
-		if ( (pEntry.strCSig == m_strHash) || (pEntry.strCSigRot == m_strHash) ||
-			(pEntry.strCSig == m_strHashRot) || (pEntry.strCSigRot == m_strHashRot) )
+		if ( !memcmp(p_sig, m_sig,32) || !memcmp(p_sigrot, m_sig,32) ||
+			 !memcmp(p_sig, m_sigrot,32) || !memcmp(p_sigrot, m_sigrot,32) )
 		{
 			curMatchSig = true;
 
@@ -6939,7 +7111,6 @@ void CjfifDecode::ProcessFile(CFile* inFile)
 	while (!bDone)
 	{
 		// Allow some other threads to jump in
-    puts("helllo");
 
 		// Return value 0 - OK
 		//              1 - Error
