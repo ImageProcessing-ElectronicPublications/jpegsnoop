@@ -1,8 +1,8 @@
-CC=g++-9
-CFLAGS=-c -g
+CC=g++
+CFLAGS=-c -g -fno-stack-protector
 # CFLAGS=-c -O3 -ferror-limit=11111
 
-main: JfifDecode.o DocLog.o main.o Md5.o WindowBuf.o DbSigs.o ImgDecode.o General.o
+main: JfifDecode.o DocLog.o main.o WindowBuf.o DbSigs.o ImgDecode.o General.o
 	$(CC) -o main *.o
 
 main.o: main.cpp
@@ -13,9 +13,6 @@ JfifDecode.o: ../source/JfifDecode.cpp ../source/JfifDecode.h ../source/DocLog.h
 
 DocLog.o: ../source/DocLog.cpp ../source/DocLog.h
 	$(CC) $(CFLAGS) ../source/DocLog.cpp
-
-Md5.o: ../source/Md5.cpp ../source/Md5.h
-	$(CC) $(CFLAGS) ../source/Md5.cpp
 
 WindowBuf.o: ../source/WindowBuf.cpp ../source/WindowBuf.h
 	$(CC) $(CFLAGS) ../source/WindowBuf.cpp

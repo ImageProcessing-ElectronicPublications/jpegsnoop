@@ -7110,6 +7110,7 @@ void CjfifDecode::ProcessFile(CFile* inFile)
 	BOOL bDone = FALSE;
 	while (!bDone)
 	{
+		puts("gjk");
 		// Allow some other threads to jump in
 
 		// Return value 0 - OK
