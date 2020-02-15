@@ -1,12 +1,11 @@
 CC=g++
-CFLAGS=-c -g
-# CFLAGS=-c -O3 -ferror-limit=11111
+CFLAGS=-O3
 
-main: JfifDecode.o DocLog.o main.o WindowBuf.o DbSigs.o ImgDecode.o General.o
+main: JfifDecode.o DocLog.o snoop.o WindowBuf.o DbSigs.o ImgDecode.o General.o
 	$(CC) -o snoop *.o
 
-main.o: main.cpp
-	$(CC) $(CFLAGS) main.cpp
+snoop.o: snoop.cpp snoop.h
+	$(CC) $(CFLAGS) snoop.cpp
 
 JfifDecode.o: source/JfifDecode.cpp source/JfifDecode.h source/DocLog.h source/WindowsClasses.h
 	$(CC) $(CFLAGS) source/JfifDecode.cpp

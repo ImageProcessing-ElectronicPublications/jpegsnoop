@@ -6,6 +6,8 @@
 
 static CDbSigs * HashDB;
 
+#include "snoop.h"
+
 void InitJPEGSnoop()
 {
     HashDB = new CDbSigs();
@@ -16,6 +18,8 @@ void RunJPEGSnoop( void * JPEG,
                    char * LogOutput,
                    uint64_t LogMax )
 {
+    LogOutput[0] = 0;
+
     CDocLog * glb_pDocLog = new CDocLog(LogOutput, LogMax);
     CwindowBuf * m_pWBuf = new CwindowBuf();
     CFile * jpegfile = new CFile(JPEG, JPEGSize, "fake path");
