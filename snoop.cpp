@@ -38,7 +38,13 @@ void RunJPEGSnoop( void * JPEG,
     delete m_pJfifDec;
 }
 
+void UninitJPEGSnoop()
+{
+    delete HashDB;
+}
 
+
+/* The following is a usage example */
 #ifdef SNOOP_TEST
 void * file2mem(char * FilePath, uint64_t * SizeOutput)
 {
@@ -69,6 +75,8 @@ int main(int argc, char ** argv)
 
     free(jpeg_file);
     free(log_output);
+
+    void UninitJPEGSnoop();
 
     return 0;
 }

@@ -8,4 +8,6 @@ void RunJPEGSnoop( void * JPEG,
                    char * LogOutput,
                    uint64_t LogMax );
 
+void UninitJPEGSnoop();
+
 #endif
