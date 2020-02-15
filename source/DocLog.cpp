@@ -28,13 +28,15 @@
 //
 CDocLog::CDocLog(char * Output, uint64_t MaxLength)
 {
-	logFile = fopen("LogFile.txt", "w");
+	this->log_out = Output;
+	this->written = 0;
+	this->max_length = MaxLength-1;
 	return;
 }
 
 CDocLog::~CDocLog(void)
 {
-	fclose(logFile);
+	return;
 }
 
 
@@ -70,7 +72,6 @@ bool CDocLog::GetQuickMode()
 
 void CDocLog::Clear()
 {
-
 	return;
 }
 
@@ -78,137 +79,52 @@ void CDocLog::Clear()
 // Add a basic text line to the log
 void CDocLog::AddLine(const char * strTxt)
 {
-	fprintf(logFile, "%s\n", strTxt);
-	// COLORREF		sCol;
-	// if (m_bEn) {
-	// 	sCol = RGB(1, 1, 1);
-	// 	// TODO: Do I really need newline in these line outputs?
-	// 	if (m_bUseDoc) {
-	// 		if (m_bLogQuickMode) {
-	// 			AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 		} else {
-	// 			CJPEGsnoopDoc*	pSnoopDoc = (CJPEGsnoopDoc*)m_pDoc;
-	// 			pSnoopDoc->AppendToLog(strTxt+_T("\n"),sCol);
-	// 		}
-	// 	} else {
-	// 		AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 	}
-	// }
+	/* +1 for the newline character */
+	uint64_t length_text = strlen(strTxt)+1;
+
+	/* Only write if it fits */
+	if (written+length_text < max_length)
+	{
+		sprintf(log_out+written, "%s\n", strTxt);
+		written += length_text;
+	}
 }
 
 // Add a header text line to the log
 void CDocLog::AddLineHdr(const char * strTxt)
 {
-	fprintf(logFile, "%s\n", strTxt);
-	// COLORREF		sCol = RGB(1, 1, 255);
-	// if (m_bEn) {
-	// 	if (m_bUseDoc) {
-	// 		if (m_bLogQuickMode) {
-	// 			AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 		} else {
-	// 		CJPEGsnoopDoc*	pSnoopDoc = (CJPEGsnoopDoc*)m_pDoc;
-	// 		pSnoopDoc->AppendToLog(strTxt+_T("\n"),sCol);
-	// 		}
-	// 	} else {
-	// 		AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 	}
-	// }
+	AddLine(strTxt);
 }
 
 // Add a header description text line to the log
 void CDocLog::AddLineHdrDesc(const char * strTxt)
 {
-	fprintf(logFile, "%s\n", strTxt);
-	// COLORREF		sCol = RGB(32, 32, 255);
-	// if (m_bEn) {
-	// 	if (m_bUseDoc) {
-	// 		if (m_bLogQuickMode) {
-	// 			AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 		} else {
-	// 		CJPEGsnoopDoc*	pSnoopDoc = (CJPEGsnoopDoc*)m_pDoc;
-	// 		pSnoopDoc->AppendToLog(strTxt+_T("\n"),sCol);
-	// 		}
-	// 	} else {
-	// 		AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 	}
-	// }
+	AddLine(strTxt);
 }
 
 // Add a warning text line to the log
 void CDocLog::AddLineWarn(const char * strTxt)
 {
-	fprintf(logFile, "%s\n", strTxt);
-	// COLORREF		sCol = RGB(128, 1, 1);
-	// if (m_bEn) {
-	// 	if (m_bUseDoc) {
-	// 		if (m_bLogQuickMode) {
-	// 			AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 		} else {
-	// 			CJPEGsnoopDoc*	pSnoopDoc = (CJPEGsnoopDoc*)m_pDoc;
-	// 			pSnoopDoc->AppendToLog(strTxt+_T("\n"),sCol);
-	// 		}
-	// 	} else {
-	// 		AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 	}
-	// }
+	AddLine(strTxt);
 }
 
 // Add an error text line to the log
 void CDocLog::AddLineErr(const char * strTxt)
 {
-	fprintf(logFile, "%s\n", strTxt);
-	// COLORREF		sCol = RGB(255, 1, 1);
-	// if (m_bEn) {
-	// 	if (m_bUseDoc) {
-	// 		if (m_bLogQuickMode) {
-	// 			AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 		} else {
-	// 			CJPEGsnoopDoc*	pSnoopDoc = (CJPEGsnoopDoc*)m_pDoc;
-	// 			pSnoopDoc->AppendToLog(strTxt+_T("\n"),sCol);
-	// 		}
-	// 	} else {
-	// 		AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 	}
-	// }
+	AddLine(strTxt);
 }
 
 // Add a "good" indicator text line to the log
 void CDocLog::AddLineGood(const char * strTxt)
 {
-	fprintf(logFile, "%s\n", strTxt);
-	// COLORREF		sCol = RGB(16, 128, 16);
-	// if (m_bEn) {
-	// 	if (m_bUseDoc) {
-	// 		if (m_bLogQuickMode) {
-	// 			AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 		} else {
-	// 			CJPEGsnoopDoc*	pSnoopDoc = (CJPEGsnoopDoc*)m_pDoc;
-	// 			pSnoopDoc->AppendToLog(strTxt+_T("\n"),sCol);
-	// 		}
-	// 	} else {
-	// 		AppendToLogLocal(strTxt+_T("\n"),sCol);
-	// 	}
-	// }
+	AddLine(strTxt);
 }
 
 // ======================================================================
 
 unsigned CDocLog::AppendToLogLocal(const char * strTxt, COLORREF sColor)
 {
-	// Don't exceed a realistic maximum!
-	// unsigned numLines = m_saLogQuickTxt.GetCount();
-	// if (numLines == DOCLOG_MAX_LINES) {
-	// 	m_saLogQuickTxt.Add(_T("*** TOO MANY LINES IN REPORT -- TRUNCATING ***"));
-	// 	m_naLogQuickCol.Add((unsigned)sColor);
-	// 	return 0;
-	// } else if (numLines > DOCLOG_MAX_LINES) {
-	// 	return 0;
-	// }
-
-	// m_saLogQuickTxt.Add(strTxt);
-	// m_naLogQuickCol.Add((unsigned)sColor);
-
-	// return 0;
+	AddLine(strTxt);
 	return 0;
 }
 
@@ -218,77 +134,3 @@ unsigned CDocLog::GetNumLinesLocal()
 	return 10;
 	// return m_saLogQuickTxt.GetCount();
 }
-
-// // Fetch a line from the local log
-// // Returns false if line number is out of range
-// bool CDocLog::GetLineLogLocal(unsigned nLine,const char * &strOut,COLORREF &sCol)
-// {
-// 	return true;
-// }
-
-// // Save the current log to text file with a simple implementation
-// //
-// // - This routine is implemented with a simple output mechanism rather
-// //   than leveraging CRichEditCtrl::DoSave() so that we can perform
-// //   this operation in command-line mode or batch mode operations.
-// //
-// void CDocLog::DoLogSave(const char * strLogName)
-// {
-// 	return;
-// 	// CStdioFile*	pLog;
-
-// 	// // Open the file for output
-// 	// ASSERT(strLogName != _T(""));
-
-// 	// // OLD COMMENTS FOLLOW
-// 	// // This save method will only work if we were in Quick Log mode
-// 	// // where we have recorded the log to a string buffer and not
-// 	// // directly to the RichEdit
-// 	// // Note that m_bLogQuickMode is only toggled on during processing
-// 	// // so we can't check the status here (except seeing that there are no
-// 	// // lines in the array)
-
-// 	// // TODO: Ensure file doesn't exist and only overwrite if specified in command-line?
-
-// 	// // TODO:
-// 	// // Confirm that we are not writing to the same file we opened (m_strPathName)
-// 	// // ASSERT(strLogName != m_strPathName);
-
-// 	// try
-// 	// {
-// 	// 	// Open specified file
-// 	// 	pLog = new CStdioFile(strLogName, CFile::modeCreate| CFile::modeWrite | CFile::typeText | CFile::shareDenyNone);
-// 	// }
-// 	// catch (CFileException* e)
-// 	// {
-// 	// 	TCHAR msg[MAX_BUF_EX_ERR_MSG];
-// 	// 	const char * strError;
-// 	// 	e->GetErrorMessage(msg,MAX_BUF_EX_ERR_MSG);
-// 	// 	e->Delete();
-// 	// 	strError.Format(_T("ERROR: Couldn't open file for write [%s]: [%s]"),
-// 	// 		(LPCTSTR)strLogName, (LPCTSTR)msg);
-// 	// 	// FIXME: Find an alternate method of signaling error in command-line mode
-// 	// 	AfxMessageBox(strError);
-// 	// 	pLog = NULL;
-
-// 	// 	return;
-
-// 	// }
-
-// 	// // Step through the current log buffer
-// 	// const char *		strLine;
-// 	// COLORREF	sCol;
-// 	// unsigned nQuickLines = GetNumLinesLocal();
-// 	// for (unsigned nLine=0;nLine<nQuickLines;nLine++)
-// 	// {
-// 	// 	GetLineLogLocal(nLine,strLine,sCol);
-// 	// 	pLog->WriteString(strLine);
-// 	// }
-
-// 	// // Close the file
-// 	// if (pLog) {
-// 	// 	pLog->Close();
-// 	// 	delete pLog;
-// 	// }
-
-// }

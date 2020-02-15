@@ -150,65 +150,76 @@ public:
 
     CFile(char * filepath, UINT OpenFlags)
     {
-        this->c_file = fopen(filepath, "rb+");
-        this->path = (char *)malloc(strlen(filepath)+1);
-        strcpy(this->path, filepath);
+        /* Obsolete */
+    }
+
+    CFile(void * Data, uint64_t Size, char * Path)
+    {
+        this->data = (uint8_t *)Data;
+        this->position = 0;
+        this->size = Size;
+        this->path = Path;
     }
 
     ~CFile()
     {
-        if (this->c_file) fclose(this->c_file);
+        return;
     }
 
     void Close()
     {
-        if (this->c_file) fclose(this->c_file);
-        this->c_file = NULL;
+        return;
     }
 
     void Write(void * Data, uint64_t Bytes)
     {
-        fwrite(Data, 1, Bytes, this->c_file);
+        return;
     }
 
     CString GetFilePath()
     {
-        return CString(this->path);
+        return path;
     }
 
     uint64_t Read(void * Out, uint64_t Count)
     {
-        return fread(Out, 1, Count, this->c_file);
+        memcpy(Out, data+position, Count);
+        position += Count;
     }
 
-    uint64_t Seek(uint64_t Offset, int From)
+    uint64_t Seek(int64_t Offset, int From)
     {
-        int ret = fseek(c_file, Offset, From);
+        if (From == SEEK_SET)
+        {
+            position = Offset;
+        }
+        else if (From == SEEK_CUR)
+        {
+            position += Offset;
+        }
+        else if (From == SEEK_END)
+        {
+            position = size + Offset;
+        }
 
-        if (!ret) return ftell(c_file);
-        else return -10000;
+        return 0;
     }
 
     CString GetFileName()
     {
-        char * filepath = this->path;
-        filepath += strlen(filepath);
-        while (filepath[-1] != '/') filepath--;
-        return CString(filepath);
+        return path;
     }
 
     int64_t GetLength()
     {
-        int64_t original_pos = ftell(c_file);
-        fseek(c_file, 0, SEEK_END);
-        int64_t retval = ftell(c_file);
-        fseek(c_file, original_pos, SEEK_SET);
-        return retval;
+        return size;
     }
 
 private:
-    FILE * c_file;
-    char * path;
+    uint8_t * data;
+    uint64_t size;
+    uint64_t position;
+    CString path;
 };
 
 #endif

@@ -31,7 +31,7 @@
 class CDocLog
 {
 public:
-	CDocLog();
+	CDocLog(char * Output, uint64_t MaxLength);
 	~CDocLog(void);
 
 	void		AddLine(const char * str);
@@ -59,16 +59,7 @@ private:
 
 private:
 
-	FILE * logFile;
 	uint64_t max_length;
-	// bool			m_bUseDoc;		// Use Document or local buffer
-	// CDocument*		m_pDoc;
-	// bool			m_bEn;
-
-	// // Local buffer
-	// CStringArray	m_saLogQuickTxt;
-	// CUIntArray		m_naLogQuickCol;
-
-	// bool			m_bLogQuickMode;	// In m_bUseDoc=TRUE, do we write to local buffer instead?
-
+	uint64_t written;
+	char * log_out;
 };

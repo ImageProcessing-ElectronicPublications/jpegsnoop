@@ -16,7 +16,8 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "stdafx.h"
+#include "../main/WindowsClasses.h"
+
 #include "DbSigs.h"
 
 #pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
