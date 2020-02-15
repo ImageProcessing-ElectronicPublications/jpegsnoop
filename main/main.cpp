@@ -17,14 +17,13 @@ void RunJPEGSnoop( void * JPEG,
                    uint64_t LogMax )
 {
     CDocLog * glb_pDocLog = new CDocLog(LogOutput, LogMax);
-	CwindowBuf * m_pWBuf = new CwindowBuf();
+    CwindowBuf * m_pWBuf = new CwindowBuf();
     CFile * jpegfile = new CFile(JPEG, JPEGSize, "fake path");
 
     m_pWBuf->BufFileSet(jpegfile); /* TODO:" file here" */
 
-	CimgDecode * m_pImgDec = new CimgDecode(glb_pDocLog,m_pWBuf);
-
-	CjfifDecode * m_pJfifDec = new CjfifDecode(glb_pDocLog,m_pWBuf,m_pImgDec, HashDB);
+    CimgDecode * m_pImgDec = new CimgDecode(glb_pDocLog,m_pWBuf);
+    CjfifDecode * m_pJfifDec = new CjfifDecode(glb_pDocLog,m_pWBuf,m_pImgDec, HashDB);
 
     m_pJfifDec->ProcessFile(jpegfile);
 
@@ -62,6 +61,9 @@ int main(int argc, char ** argv)
     RunJPEGSnoop(jpeg_file, file_size, log_output, LOG_MAX);
 
     puts(log_output);
+
+    free(jpeg_file);
+    free(log_output);
 
     return 0;
 }
