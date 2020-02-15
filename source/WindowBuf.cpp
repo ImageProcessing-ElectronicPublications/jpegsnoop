@@ -17,7 +17,7 @@
 //
 
 // #include "stdafx.h"
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 
 #include <stdlib.h>
 

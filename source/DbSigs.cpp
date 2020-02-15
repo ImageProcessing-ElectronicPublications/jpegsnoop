@@ -17,7 +17,7 @@
 //
 
 
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 
 #include "DbSigs.h"
 #include "General.h"

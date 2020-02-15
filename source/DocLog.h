@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 #include <stdio.h>
 
 class CDocLog

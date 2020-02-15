@@ -17,7 +17,7 @@
 //
 
 
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 
 #include "DocLog.h"
 

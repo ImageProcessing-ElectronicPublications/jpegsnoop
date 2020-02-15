@@ -35,7 +35,7 @@
 
 #include "DocLog.h"
 #include "WindowBuf.h"
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 
 #include <map>
 

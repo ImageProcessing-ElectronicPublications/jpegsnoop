@@ -20,7 +20,7 @@
 // Global functions
 // ---------------------------------------
 
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 
 CString Dec2Bin(unsigned nVal,unsigned nLen,bool bSpace)
 {

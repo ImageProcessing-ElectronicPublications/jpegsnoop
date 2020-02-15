@@ -16,7 +16,7 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 
 #include "DbSigs.h"
 

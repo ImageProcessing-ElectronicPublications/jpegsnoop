@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "../main/WindowsClasses.h"
+#include "WindowsClasses.h"
 #include "DocLog.h"
 
 // For now, we only ever use MAX_BUF_WINDOW bytes, even though we
