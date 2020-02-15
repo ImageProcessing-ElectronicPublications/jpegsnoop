@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -g -fno-stack-protector
+CFLAGS=-c -g
 # CFLAGS=-c -O3 -ferror-limit=11111
 
 main: JfifDecode.o DocLog.o main.o WindowBuf.o DbSigs.o ImgDecode.o General.o

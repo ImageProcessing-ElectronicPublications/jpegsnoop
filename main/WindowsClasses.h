@@ -14,6 +14,8 @@
 #define TRUE 1
 #define FALSE 0
 
+typedef char TCHAR;
+
 typedef void CDC;
 typedef void CStdioFile;
 typedef void CFont;
@@ -65,8 +67,8 @@ class CObject {};
 
 #define _tcscmp(A, B) strcmp(A, B)
 #define _tcslen(A) strlen(A)
-#define _tcscpy_s(A, B, C) wcsncpy((wchar_t *)A, (wchar_t *)C, B)
-#define _tcsnccmp(A, B, C) strcmp((wchar_t *)A, (wchar_t *)C, B)
+#define _tcscpy_s(A, B, C) strncpy((char *)A, (char *)C, B)
+#define _tcsnccmp(A, B, C) strncmp((char *)A, (char *)C, B)
 /* "returns nonzero if c is a particular representation of a printable character" */
 #define _istprint(c) ((c < 10 && c >= 0) ? 1 : 0)
 

@@ -3574,7 +3574,7 @@ void CjfifDecode::DecodeDHT(bool bInject)
 				{
 					unsigned int	nDecVal = nCodeVal;
 					unsigned int	nBinBit;
-					TCHAR			acBinStr[17] = _T("");
+					char			acBinStr[17] = _T("");
 					unsigned int	nBinStrLen = 0;
 
 					// If the user has enabled output of DHT expanded tables,
@@ -3779,7 +3779,7 @@ bool CjfifDecode::ValidateValue(unsigned &nVal,unsigned nMin,unsigned nMax,CStri
 #define DECMARK_EOI 2
 unsigned CjfifDecode::DecodeMarker()
 {
-	TCHAR			acIdentifier[MAX_IDENTIFIER];
+	char			acIdentifier[MAX_IDENTIFIER];
 	CString			strTmp;
 	CString			strFull;				// Used for concatenation
 	unsigned		nLength;				// General purpose
@@ -3865,7 +3865,7 @@ unsigned CjfifDecode::DecodeMarker()
 
 		m_nPos += 2; // Move past length now that we've used it
 
-		_tcscpy_s(acIdentifier,MAX_IDENTIFIER,m_pWBuf->BufReadStrn(m_nPos,MAX_IDENTIFIER-1));
+		strncpy(acIdentifier,m_pWBuf->BufReadStrn(m_nPos,MAX_IDENTIFIER-1),MAX_IDENTIFIER);
 		acIdentifier[MAX_IDENTIFIER-1] = 0; // Null terminate just in case
 		strTmp.Format(_T("  Identifier      = [%s]"),acIdentifier);
 		m_pLog->AddLine(strTmp.GetString());
@@ -3960,7 +3960,7 @@ unsigned CjfifDecode::DecodeMarker()
 		}
 		m_nPos += 2; // Move past length now that we've used it
 
-		_tcscpy_s(acIdentifier,MAX_IDENTIFIER,m_pWBuf->BufReadStrn(m_nPos,MAX_IDENTIFIER-1));
+		strncpy(acIdentifier,m_pWBuf->BufReadStrn(m_nPos,MAX_IDENTIFIER-1),MAX_IDENTIFIER);
 		acIdentifier[MAX_IDENTIFIER-1] = 0; // Null terminate just in case
 		strTmp.Format(_T("  Identifier      = [%s]"),acIdentifier);
 		m_pLog->AddLine(strTmp.GetString());
@@ -7335,7 +7335,7 @@ void CjfifDecode::ProcessFile(CFile* inFile)
 // 	}
 // 	catch (CFileException* e)
 // 	{
-// 		TCHAR msg[MAX_BUF_EX_ERR_MSG];
+// 		char msg[MAX_BUF_EX_ERR_MSG];
 // 		CString strError;
 // 		e->GetErrorMessage(msg,MAX_BUF_EX_ERR_MSG);
 // 		e->Delete();
@@ -7496,7 +7496,7 @@ void CjfifDecode::ProcessFile(CFile* inFile)
 // 	}
 // 	catch (CFileException* e)
 // 	{
-// 		TCHAR msg[MAX_BUF_EX_ERR_MSG];
+// 		char msg[MAX_BUF_EX_ERR_MSG];
 // 		CString strError;
 // 		e->GetErrorMessage(msg,MAX_BUF_EX_ERR_MSG);
 // 		e->Delete();

@@ -115,7 +115,7 @@
 #define APP14_COLXFM_YCC		1
 #define APP14_COLXFM_YCCK		2
 
-#define MAX_IDENTIFIER			256		// Max length for identifier strings (include terminator)
+#define MAX_IDENTIFIER			1024		// Max length for identifier strings (include terminator)
 
 struct CStr2 {
 	CString		strTag;
