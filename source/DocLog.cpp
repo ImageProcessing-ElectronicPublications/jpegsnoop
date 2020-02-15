@@ -26,7 +26,7 @@
 //
 // Initialize the log
 //
-CDocLog::CDocLog(void)
+CDocLog::CDocLog(char * Output, uint64_t MaxLength)
 {
 	logFile = fopen("LogFile.txt", "w");
 	return;

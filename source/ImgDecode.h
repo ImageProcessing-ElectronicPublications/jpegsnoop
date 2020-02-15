@@ -31,14 +31,11 @@
 
 #pragma once
 
-#include "SnoopConfig.h"
-
 #include "snoop.h"
 
 #include "DocLog.h"
 #include "WindowBuf.h"
 #include "../main/WindowsClasses.h"
-#include "Dib.h"
 
 #include <map>
 
@@ -439,8 +436,6 @@ public: // For Export
 	// -------------------------------------------------------------
 
 private:
-	CSnoopConfig*		m_pAppConfig;	// Pointer to application config
-
 	unsigned *			m_pMcuFileMap;
 	unsigned			m_nMcuWidth;	// Width (pix) of MCU (e.g. 8,16)
 	unsigned			m_nMcuHeight;	// Height (pix) of MCU (e.g. 8,16)

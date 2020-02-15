@@ -16,12 +16,11 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "stdafx.h"
-
 // ---------------------------------------
 // Global functions
 // ---------------------------------------
 
+#include "../main/WindowsClasses.h"
 
 CString Dec2Bin(unsigned nVal,unsigned nLen,bool bSpace)
 {

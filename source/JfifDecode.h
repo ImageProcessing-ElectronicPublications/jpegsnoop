@@ -28,11 +28,8 @@
 
 #include "DocLog.h"
 #include "ImgDecode.h"
-#include "DecodePs.h"
-#include "DecodeDicom.h"
 #include "WindowBuf.h"
 #include "snoop.h"
-#include "SnoopConfig.h"
 
 #include "DbSigs.h"
 
@@ -267,9 +264,7 @@ private:
 	// General classes required for decoding
 	CwindowBuf*		m_pWBuf;
 	CimgDecode*		m_pImgDec;
-	CDecodePs*		m_pPsDec;
-	CDecodeDicom*	m_pDecDicom;
-
+	
 	// UI elements & log
 	CDocLog*		m_pLog;
 

@@ -19,8 +19,6 @@
 
 #include "../main/WindowsClasses.h"
 
-#include "stdafx.h"
-
 #include "WindowBuf.h"
 
 #include "JfifDecode.h"
@@ -3846,7 +3844,6 @@ unsigned CjfifDecode::DecodeMarker()
 
 	AddHeader(nCode);
 
-	puts("Helo1");
 	switch (nCode)
 	{
 	case JFIF_SOI: // SOI
@@ -5454,8 +5451,6 @@ unsigned CjfifDecode::DecodeMarker()
 		return DECMARK_ERR;
 	}
 
-	puts("HELLO !!! -----------");
-
 	return DECMARK_OK;
 }
 
@@ -5756,7 +5751,6 @@ void CjfifDecode::PrepareSignatureSingle(bool bRotate)
 		strTmp.Format("In%u: [",i/80);
 		strTmp += strHashIn.Mid(i,80);
 		strTmp += "]";
-		puts(strTmp.GetString());
 #ifdef DEBUG_SIG
 		//m_pLog->AddLine(strTmp.GetString());
 #endif
@@ -5768,9 +5762,9 @@ void CjfifDecode::PrepareSignatureSingle(bool bRotate)
 		pHashIn[i] = strHashIn.GetAt(i);
 	}
 	
-	puts("\n\n-------- STRHASHIN 2 ---------");
-	puts((const char *)pHashIn);
-	puts("-------- STRHASHIN 2 ---------\n\n");
+	// puts("\n\n-------- STRHASHIN 2 ---------");
+	// puts((const char *)pHashIn);
+	// puts("-------- STRHASHIN 2 ---------\n\n");
 	
 
 	// Calculate the hash
@@ -5783,11 +5777,6 @@ void CjfifDecode::PrepareSignatureSingle(bool bRotate)
 
 	// Overwrite top 8 bits for signature version number
 	dg[0] = DB_SIG_VER;
-
-printf("!!! HASH = %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", 
-		dg[0], dg[1], dg[2],
- 		dg[3], dg[4], dg[5], dg[6], dg[7], dg[8], dg[9], dg[10], dg[11],	
- 		dg[12], dg[13], dg[14], dg[15]);
 
 	// Convert hash to string format
 	// The hexadecimal string is converted to Unicode (if that is build directive)
@@ -6119,9 +6108,6 @@ bool CjfifDecode::CompareSignature(bool bQuiet=false)
 			bSrchXsw = true;
 			curMatchSw = true;
 		}
-
-		printf("    hash = %s\n", m_strHash.GetString());
-		printf("rot hash = %s\n", m_strHashRot.GetString());
 
 		const char * p_sig = pEntry.strCSig.GetString(), * p_sigrot = pEntry.strCSigRot.GetString();
 		const char * m_sig = m_strHash.GetString(), * m_sigrot = m_strHashRot.GetString();
@@ -7109,7 +7095,6 @@ void CjfifDecode::ProcessFile(CFile* inFile)
 	BOOL bDone = FALSE;
 	while (!bDone)
 	{
-		puts("gjk");
 		// Allow some other threads to jump in
 
 		// Return value 0 - OK

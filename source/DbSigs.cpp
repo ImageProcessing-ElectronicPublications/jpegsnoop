@@ -19,7 +19,6 @@
 
 #include "../main/WindowsClasses.h"
 
-#include "stdafx.h"
 #include "DbSigs.h"
 #include "General.h"
 

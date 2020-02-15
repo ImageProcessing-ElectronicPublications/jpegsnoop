@@ -60,6 +60,7 @@ private:
 private:
 
 	FILE * logFile;
+	uint64_t max_length;
 	// bool			m_bUseDoc;		// Use Document or local buffer
 	// CDocument*		m_pDoc;
 	// bool			m_bEn;
