@@ -127,10 +127,3 @@ unsigned CDocLog::AppendToLogLocal(const char * strTxt, COLORREF sColor)
 	AddLine(strTxt);
 	return 0;
 }
-
-// Get the number of lines in the local log or quick buffer
-unsigned CDocLog::GetNumLinesLocal()
-{
-	return 10;
-	// return m_saLogQuickTxt.GetCount();
-}
