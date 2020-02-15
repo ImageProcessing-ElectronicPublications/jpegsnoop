@@ -22,7 +22,7 @@ void RunJPEGSnoop( void * JPEG,
 
     CDocLog * glb_pDocLog = new CDocLog(LogOutput, LogMax);
     CwindowBuf * m_pWBuf = new CwindowBuf();
-    CFile * jpegfile = new CFile(JPEG, JPEGSize, "fake path");
+    CFile * jpegfile = new CFile(JPEG, JPEGSize, "File.jpeg");
 
     m_pWBuf->BufFileSet(jpegfile); /* TODO:" file here" */
 
@@ -38,8 +38,6 @@ void RunJPEGSnoop( void * JPEG,
     delete m_pJfifDec;
 }
 
-
-#define SNOOP_TEST
 
 #ifdef SNOOP_TEST
 void * file2mem(char * FilePath, uint64_t * SizeOutput)
@@ -74,4 +72,4 @@ int main(int argc, char ** argv)
 
     return 0;
 }
-#endif SNOOP_TEST
+#endif

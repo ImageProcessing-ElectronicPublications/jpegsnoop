@@ -1,8 +1,11 @@
 CC=g++
-CFLAGS=-O3
+CFLAGS=-c -fPIC
 
-main: JfifDecode.o DocLog.o snoop.o WindowBuf.o DbSigs.o ImgDecode.o General.o
-	$(CC) -o snoop *.o
+main: WindowBuf.o JfifDecode.o DocLog.o snoop.o DbSigs.o ImgDecode.o General.o
+	ar rcs libsnoop.a *.o
+	$(CC) -shared *.o -o libsnoop.so
+	$(CC) $(CFLAGS) -DSNOOP_TEST snoop.cpp
+	$(CC) *.o -o runsnoop
 
 snoop.o: snoop.cpp snoop.h
 	$(CC) $(CFLAGS) snoop.cpp
@@ -26,4 +29,4 @@ General.o: source/General.cpp source/General.h source/WindowsClasses.h
 	$(CC) $(CFLAGS) source/General.cpp
 
 clean:
-	rm *.o snoop
+	rm *.o runsnoop
