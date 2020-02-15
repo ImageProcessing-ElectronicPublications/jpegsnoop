@@ -39,6 +39,9 @@ void RunJPEGSnoop( void * JPEG,
 }
 
 
+#define SNOOP_TEST
+
+#ifdef SNOOP_TEST
 void * file2mem(char * FilePath, uint64_t * SizeOutput)
 {
     FILE * file = fopen(FilePath, "r");
@@ -71,3 +74,4 @@ int main(int argc, char ** argv)
 
     return 0;
 }
+#endif SNOOP_TEST

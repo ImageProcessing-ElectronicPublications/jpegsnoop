@@ -1,5 +1,5 @@
-#ifndef _Snoop_h
-#define _Snoop_h_
+#ifndef _JPEGSnoop_h
+#define _JPEGSnoop_h_
 
 void InitJPEGSnoop();
 
