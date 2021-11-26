@@ -1,3 +1,9 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/ImageProcessing-ElectronicPublications/jpegsnoop)
+![GitHub Release Date](https://img.shields.io/github/release-date/ImageProcessing-ElectronicPublications/jpegsnoop)
+![GitHub repo size](https://img.shields.io/github/repo-size/ImageProcessing-ElectronicPublications/jpegsnoop)
+![GitHub all releases](https://img.shields.io/github/downloads/ImageProcessing-ElectronicPublications/jpegsnoop/total)
+![GitHub](https://img.shields.io/github/license/ImageProcessing-ElectronicPublications/jpegsnoop)
+
 # JPEGsnoop
 
 <img align="right" src="http://www.impulseadventure.com/photo/images/jpegsnoop_prog.png">
