@@ -1,12 +1,12 @@
-#include "source/DocLog.h"
-#include "source/JfifDecode.h"
-#include "source/WindowBuf.h"
-#include "source/DbSigs.h"
-#include "source/WindowsClasses.h"
+#include "lib/doclog.h"
+#include "lib/jfifdecode.h"
+#include "lib/windowbuf.h"
+#include "lib/dbsigs.h"
+#include "lib/windowsclasses.h"
 
 static CDbSigs * HashDB;
 
-#include "snoop.h"
+#include "jpegsnoop.h"
 
 void InitJPEGSnoop()
 {
@@ -61,23 +61,30 @@ void * file2mem(char * FilePath, uint64_t * SizeOutput)
 
 int main(int argc, char ** argv)
 {
-    InitJPEGSnoop();
+    if (argc > 2)
+    {
+        InitJPEGSnoop();
 
-    uint64_t file_size;
-    void * jpeg_file = file2mem(argv[1], &file_size);
+        uint64_t file_size;
+        void * jpeg_file = file2mem(argv[1], &file_size);
 
-    #define LOG_MAX 100000
-    char * log_output = (char *)malloc(LOG_MAX);
+#define LOG_MAX 100000
+        char * log_output = (char *)malloc(LOG_MAX);
 
-    RunJPEGSnoop(jpeg_file, file_size, log_output, LOG_MAX);
+        RunJPEGSnoop(jpeg_file, file_size, log_output, LOG_MAX);
 
-    puts(log_output);
+        puts(log_output);
 
-    free(jpeg_file);
-    free(log_output);
+        free(jpeg_file);
+        free(log_output);
 
-    void UninitJPEGSnoop();
+        void UninitJPEGSnoop();
 
-    return 0;
+        return 0;
+    }
+    else
+    {
+        printf("Usage: %s you.jpg", argv[0]);
+    }
 }
 #endif

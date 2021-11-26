@@ -29,26 +29,27 @@ typedef DWORD UINT;
 typedef uint16_t WORD;
 typedef char * LPCTSTR;
 typedef wchar_t* LPWSTR, *PWSTR;
- typedef char* PSTR, *LPSTR;
+typedef char* PSTR, *LPSTR;
 typedef int BOOL;
 typedef uint64_t ULONGLONG;
 typedef DWORD COLORREF;
 #define RGB(R, G, B) ((COLORREF)(((B) << 16) |  ((G) << 8) | (R)))
 
-typedef struct tagRGBQUAD {
-  BYTE rgbBlue;
-  BYTE rgbGreen;
-  BYTE rgbRed;
-  BYTE rgbReserved;
+typedef struct tagRGBQUAD
+{
+    BYTE rgbBlue;
+    BYTE rgbGreen;
+    BYTE rgbRed;
+    BYTE rgbReserved;
 } RGBQUAD;
 
 typedef void * HANDLE;
 
 #include "stdstr.h"
 typedef CStdStr<char>       CString;
-typedef CStdStr<char>		CStringA;	// a better std::string
-typedef CStdStr<uint16_t>	CStringW;	// a better std::wstring
-typedef CStdStr<OLECHAR>	CStringO;	// almost always CStdStringW
+typedef CStdStr<char>        CStringA;    // a better std::string
+typedef CStdStr<uint16_t>    CStringW;    // a better std::wstring
+typedef CStdStr<OLECHAR>    CStringO;    // almost always CStdStringW
 
 #define min(a,b) ( ((a)<(b)) ? (a):(b) )
 #define max(a,b) ( ((a)>(b)) ? (a):(b) )
