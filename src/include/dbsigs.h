@@ -23,8 +23,10 @@
 //
 // ==========================================================================
 
-
 #pragma once
+
+#ifndef _DBSIGS_H_
+#define _DBSIGS_H_
 
 #define DBEX_ENTRIES_MAX 300
 #define DB_VER_STR "03"
@@ -34,42 +36,38 @@
 // Signature exception structure with metadata fields
 struct CompExcMm
 {
-    LPTSTR        strXMake;            // EXIF Make
-    LPTSTR        strXModel;            // EXIF Model
+    LPTSTR        strXMake;     // EXIF Make
+    LPTSTR        strXModel;    // EXIF Model
 };
-
 
 // Signature structure for hardcoded table
 struct CompSigConst
 {
-    teEditor    eEditor;            // Digicam vs software/editor
-    LPTSTR        strXMake;            // Blank for editors (set to strMSwDisp)
-    LPTSTR        strXModel;            // Blank for editors
+    teEditor      eEditor;      // Digicam vs software/editor
+    LPTSTR        strXMake;     // Blank for editors (set to strMSwDisp)
+    LPTSTR        strXModel;    // Blank for editors
     LPTSTR        strUmQual;
-    LPTSTR        strCSig;            // Signature
-    LPTSTR        strCSigRot;            // Signature of rotated DQTs
-    LPTSTR        strXSubsamp;        // Blank for editors
-    LPTSTR        strMSwTrim;            // Blank for digicam
-    LPTSTR        strMSwDisp;            // Blank for digicam
+    LPTSTR        strCSig;      // Signature
+    LPTSTR        strCSigRot;   // Signature of rotated DQTs
+    LPTSTR        strXSubsamp;  // Blank for editors
+    LPTSTR        strMSwTrim;   // Blank for digicam
+    LPTSTR        strMSwDisp;   // Blank for digicam
 };
-
 
 // Signature structure for runtime table (can use CStrings)
 struct CompSig
 {
-    bool        bValid;                // Set to FALSE for removal
-    teEditor    eEditor;
-    CString        strXMake;            // Blank for editors
-    CString        strXModel;            // Blank for editors
+    bool           bValid;      // Set to FALSE for removal
+    teEditor       eEditor;
+    CString        strXMake;    // Blank for editors
+    CString        strXModel;   // Blank for editors
     CString        strUmQual;
     CString        strCSig;
     CString        strCSigRot;
-    CString        strXSubsamp;        // Blank for editors
-    CString        strMSwTrim;            // Blank for digicam
-    CString        strMSwDisp;            // Blank for digicam
+    CString        strXSubsamp; // Blank for editors
+    CString        strMSwTrim;  // Blank for digicam
+    CString        strMSwDisp;  // Blank for digicam
 };
-
-
 
 class CDbSigs
 {
@@ -91,7 +89,7 @@ public:
     void        DatabaseExtraStore();
 
     unsigned    DatabaseExtraGetNum();
-    CompSig        DatabaseExtraGet(unsigned nInd);
+    CompSig     DatabaseExtraGet(unsigned nInd);
 
     void        DatabaseExtraAdd(CString strExifMake,CString strExifModel,
                                  CString strQual,CString strSig,CString strSigRot,CString strCss,
@@ -109,33 +107,34 @@ public:
     bool        LookupExcMmIsEdit(CString strMake,CString strModel);
 
     unsigned    GetIjgNum();
-    LPTSTR        GetIjgEntry(unsigned nInd);
+    LPTSTR      GetIjgEntry(unsigned nInd);
 
     void        SetDbDir(CString strDbDir);
     void        SetFirstRun(bool bFirstRun);
 
 private:
-    CompSig                        m_sSigListExtra[DBEX_ENTRIES_MAX];    // Extra entries
+    CompSig                     m_sSigListExtra[DBEX_ENTRIES_MAX]; // Extra entries
     unsigned                    m_nSigListExtraNum;
 
     unsigned                    m_nSigListNum;
-    static const CompSigConst    m_sSigList[];            // Built-in entries
+    static const CompSigConst   m_sSigList[];                      // Built-in entries
 
     unsigned                    m_nExcMmNoMkrListNum;
-    static const CompExcMm        m_sExcMmNoMkrList[];
+    static const CompExcMm      m_sExcMmNoMkrList[];
 
     unsigned                    m_nExcMmIsEditListNum;
-    static const CompExcMm        m_sExcMmIsEditList[];
+    static const CompExcMm      m_sExcMmIsEditList[];
 
     unsigned                    m_nSwIjgListNum;
-    static LPTSTR                m_sSwIjgList[];
+    static LPTSTR               m_sSwIjgList[];
 
     unsigned                    m_nXcomSwListNum;
-    static LPTSTR                m_sXComSwList[];
+    static LPTSTR               m_sXComSwList[];
 
-    CString                        m_strDbDir;                // Database directory
+    CString                     m_strDbDir;                        // Database directory
 
-    bool                        m_bFirstRun;            // First time running app?
+    bool                        m_bFirstRun;                       // First time running app?
 
 };
 
+#endif

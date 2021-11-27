@@ -22,11 +22,13 @@
 //
 // ==========================================================================
 
-
 #pragma once
 
 #include "windowsclasses.h"
 #include <stdio.h>
+
+#ifndef _DOCLOG_H_
+#define _DOCLOG_H_
 
 class CDocLog
 {
@@ -50,7 +52,7 @@ public:
     void        Clear();
 
     unsigned    GetNumLinesLocal();
-    // bool    GetLineLogLocal(unsigned nLine,char * &strOut,COLORREF &sCol);
+    // bool        GetLineLogLocal(unsigned nLine,char * &strOut,COLORREF &sCol);
 
     // void        DoLogSave(char * strLogName);
 
@@ -63,3 +65,5 @@ private:
     uint64_t written;
     char * log_out;
 };
+
+#endif

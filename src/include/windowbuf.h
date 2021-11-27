@@ -26,42 +26,44 @@
 //
 // ==========================================================================
 
-
 #pragma once
 
 #include "windowsclasses.h"
 #include "doclog.h"
 
+#ifndef _WINDOWBUF_H_
+#define _WINDOWBUF_H_
+
 // For now, we only ever use MAX_BUF_WINDOW bytes, even though we
 // have allocated MAX_BUF bytes up front. I might change this
 // later. We don't want the window size to be too large as it
 // could have an impact on performance.
-#define MAX_BUF                262144L
-#define MAX_BUF_WINDOW        131072L
-#define MAX_BUF_WINDOW_REV    16384L //1024L
+#define MAX_BUF             262144L
+#define MAX_BUF_WINDOW      131072L
+#define MAX_BUF_WINDOW_REV  16384L //1024L
 
 #define NUM_OVERLAYS        500
-#define MAX_OVERLAY            500        // 500 bytes
+#define MAX_OVERLAY         500    // 500 bytes
 
-#define NUM_HOLES            10
+#define NUM_HOLES           10
 
-#define    MAX_BUF_READ_STR    255    // Max number of bytes to fetch in BufReadStr()
+#define    MAX_BUF_READ_STR 255    // Max number of bytes to fetch in BufReadStr()
 
 typedef struct
 {
-    bool            bEn;                    // Enabled? -- not used currently
-    unsigned        nStart;                    // File position
-    unsigned        nLen;                    // MCU Length
-    BYTE            anData[MAX_OVERLAY];    // Byte data
+    bool            bEn;                 // Enabled? -- not used currently
+    unsigned        nStart;              // File position
+    unsigned        nLen;                // MCU Length
+    BYTE            anData[MAX_OVERLAY]; // Byte data
 
     // For reporting purposes:
     unsigned        nMcuX;            // Starting MCU X
     unsigned        nMcuY;            // Starting MCU Y
-    unsigned        nMcuLen;        // Number of MCUs deleted
-    unsigned        nMcuLenIns;        // Number of MCUs inserted
-    int                nDcAdjustY;
-    int                nDcAdjustCb;
-    int                nDcAdjustCr;
+    unsigned        nMcuLen;          // Number of MCUs deleted
+    unsigned        nMcuLenIns;       // Number of MCUs inserted
+    int             nDcAdjustY;
+    int             nDcAdjustCb;
+    int             nDcAdjustCr;
 
 } sOverlay;
 
@@ -80,13 +82,13 @@ public:
     BYTE            Buf(unsigned long nOffset,bool bClean=false);
     unsigned        BufX(unsigned long nOffset,unsigned nSz,bool bByteSwap=false);
 
-    unsigned char    BufRdAdv1(unsigned long &nOffset,bool bByteSwap);
-    unsigned short    BufRdAdv2(unsigned long &nOffset,bool bByteSwap);
+    unsigned char   BufRdAdv1(unsigned long &nOffset,bool bByteSwap);
+    unsigned short  BufRdAdv2(unsigned long &nOffset,bool bByteSwap);
     unsigned        BufRdAdv4(unsigned long &nOffset,bool bByteSwap);
 
 
-    char *            BufReadStr(unsigned long nPosition);
-    char *            BufReadStrn(unsigned long nPosition,unsigned nLen);
+    char *          BufReadStr(unsigned long nPosition);
+    char *          BufReadStrn(unsigned long nPosition,unsigned nLen);
 
     bool            BufSearch(unsigned long nStartPos, unsigned nSearchVal, unsigned nSearchLen,
                               bool bDirFwd, unsigned long &nFoundPos);
@@ -104,25 +106,26 @@ public:
     void            ReportOverlays(CDocLog* pLog);
 
     bool            GetBufOk();
-    unsigned long    GetPosEof();
+    unsigned long   GetPosEof();
 
 private:
     void            Reset();
 
-
 private:
-    BYTE*            m_pBuffer;
-    CFile*            m_pBufFile;
-    unsigned long    m_nBufWinSize;
-    unsigned long    m_nBufWinStart;
+    BYTE*           m_pBuffer;
+    CFile*          m_pBufFile;
+    unsigned long   m_nBufWinSize;
+    unsigned long   m_nBufWinStart;
 
     unsigned        m_nOverlayMax;    // Number of overlays allocated (limited by mem)
     unsigned        m_nOverlayNum;
-    sOverlay*        m_psOverlay[NUM_OVERLAYS];
+    sOverlay*       m_psOverlay[NUM_OVERLAYS];
 
-    void *        m_pStatBar;
+    void *          m_pStatBar;
 
     bool            m_bBufOK;
-    unsigned long    m_nPosEof;    // Byte count at EOF
+    unsigned long   m_nPosEof;    // Byte count at EOF
 
 };
+
+#endif

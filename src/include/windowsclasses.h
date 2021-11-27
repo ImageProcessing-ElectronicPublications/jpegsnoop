@@ -1,6 +1,3 @@
-#ifndef _WindowsClasses_h_
-#define _WindowsClasses_h_
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,30 +6,31 @@
 #include <wchar.h>
 #include <algorithm>
 
+#ifndef _WINDOWSCLASSES_H_
+#define _WINDOWSCLASSES_H_
 
-
-#define TRUE 1
+#define TRUE  1
 #define FALSE 0
 
-typedef char TCHAR;
+typedef char     TCHAR;
 
-typedef void CDC;
-typedef void CStdioFile;
-typedef void CFont;
+typedef void     CDC;
+typedef void     CStdioFile;
+typedef void     CFont;
 
-typedef char * LPTSTR;
-typedef uint8_t BYTE;
+typedef char *   LPTSTR;
+typedef uint8_t  BYTE;
 #define byte BYTE
-typedef BYTE * PBYTE;
+typedef BYTE *   PBYTE;
 typedef uint32_t DWORD, *PDWORD, *LPDWORD;
-typedef DWORD UINT;
+typedef DWORD    UINT;
 typedef uint16_t WORD;
-typedef char * LPCTSTR;
+typedef char *   LPCTSTR;
 typedef wchar_t* LPWSTR, *PWSTR;
-typedef char* PSTR, *LPSTR;
-typedef int BOOL;
+typedef char*    PSTR, *LPSTR;
+typedef int      BOOL;
 typedef uint64_t ULONGLONG;
-typedef DWORD COLORREF;
+typedef DWORD    COLORREF;
 #define RGB(R, G, B) ((COLORREF)(((B) << 16) |  ((G) << 8) | (R)))
 
 typedef struct tagRGBQUAD
@@ -47,8 +45,8 @@ typedef void * HANDLE;
 
 #include "stdstr.h"
 typedef CStdStr<char>       CString;
-typedef CStdStr<char>        CStringA;    // a better std::string
-typedef CStdStr<uint16_t>    CStringW;    // a better std::wstring
+typedef CStdStr<char>       CStringA;    // a better std::string
+typedef CStdStr<uint16_t>   CStringW;    // a better std::wstring
 typedef CStdStr<OLECHAR>    CStringO;    // almost always CStdStringW
 
 #define min(a,b) ( ((a)<(b)) ? (a):(b) )
@@ -57,11 +55,9 @@ typedef CStdStr<OLECHAR>    CStringO;    // almost always CStdStringW
 class CObject {};
 
 /* Do Nothing */
-#define _T(FGJKL) (FGJKL)
-
+#define _T(FGJKL)     (FGJKL)
 
 #define STRING_LENGTH 4096
-
 
 #define StringAppend(_String, _Append) strcpy(_String+strlen(_String), _Append)
 #define StringAppendChar(_String, _AppendChar) _String[strlen(_String)] = _AppendChar

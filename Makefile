@@ -1,6 +1,6 @@
 PROJECT=jpegsnoop
 CC=g++
-CFLAGS=-Wall -fPIC -Isrc -Isrc/lib
+CFLAGS=-Wall -fPIC -Isrc -Isrc/include -Isrc/lib
 AR=ar
 OBJS=windowbuf.o jfifdecode.o doclog.o dbsigs.o imgdecode.o general.o
 

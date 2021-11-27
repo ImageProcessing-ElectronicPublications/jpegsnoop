@@ -1,8 +1,8 @@
-#include "lib/doclog.h"
-#include "lib/jfifdecode.h"
-#include "lib/windowbuf.h"
-#include "lib/dbsigs.h"
-#include "lib/windowsclasses.h"
+#include "include/doclog.h"
+#include "include/jfifdecode.h"
+#include "include/windowbuf.h"
+#include "include/dbsigs.h"
+#include "include/windowsclasses.h"
 
 static CDbSigs * HashDB;
 

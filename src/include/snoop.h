@@ -22,9 +22,10 @@
 //
 // ==========================================================================
 
-
 #pragma once
 
+#ifndef _SNOOP_H_
+#define _SNOOP_H_
 
 // Program Version / Release Number
 // - Format: "X.Y.Z"          - (full public release)
@@ -32,18 +33,18 @@
 // - Note that when the version number is incremented, I need
 //   to also update the corresponding version numbers in the
 //   JPEGsnoop.rc resource under "Version.VS_VERSION_INFO".
-#define VERSION_STR _T("1.8.0")
+#define VERSION_STR          _T("1.8.0")
 
 // Version number for the database signatures
 // - This version number has been provided in case I decide
 //   to change the database format. If a change to the format is
 //   required, then I can use this version number to help build a
 //   converter/import routine.
-#define DB_SIG_VER 0x01
+#define DB_SIG_VER           0x01
 
 // Enable debug log?
 //#define DEBUG_LOG_OUT
-#define DEBUG_EN        0
+#define DEBUG_EN             0
 
 //#define DEBUG_YCCK
 
@@ -55,7 +56,7 @@
 #define PS_IMG_DEC_EN
 
 // User Local Database filename
-#define DAT_FILE _T("JPEGsnoop_db.dat")
+#define DAT_FILE             _T("JPEGsnoop_db.dat")
 
 // In QUICKLOG mode, we support batching up of writes to the
 // RichEdit window, which greatly speeds up the output
@@ -79,26 +80,26 @@
 // - The URLs that are used to indicate new release availability are also
 //   provided here. These pages have specific formatting that JPEGsnoop
 //   parses to identify if a newer version is available.
-#define IA_HOST                _T("www.impulseadventure.com")
+#define IA_HOST              _T("www.impulseadventure.com")
 #define IA_DB_SUBMIT_PAGE    _T("/photo/jpeg-snoop-submit.php")
-#define IA_UPDATES_CHK_PAGE    _T("/photo/jpeg-snoop.html")
-#define IA_UPDATES_DL_PAGE    _T("http://www.impulseadventure.com/photo/jpeg-snoop.html#download")
+#define IA_UPDATES_CHK_PAGE  _T("/photo/jpeg-snoop.html")
+#define IA_UPDATES_DL_PAGE   _T("http://www.impulseadventure.com/photo/jpeg-snoop.html#download")
 
 // Registry settings
-#define REG_KEY_PATH        _T("Software\\ImpulseAdventure\\JPEGsnoop\\")
-#define REG_COMPANY_NAME    _T("ImpulseAdventure")
-#define REG_SW_NAME            _T("JPEGsnoop")
+#define REG_KEY_PATH         _T("Software\\ImpulseAdventure\\JPEGsnoop\\")
+#define REG_COMPANY_NAME     _T("ImpulseAdventure")
+#define REG_SW_NAME          _T("JPEGsnoop")
 
 // Extra logging for debugging
 #define DEBUG_LOG
 
 // For errors (eg. in exceptions), define message buffer length
-#define    MAX_BUF_EX_ERR_MSG    512
+#define MAX_BUF_EX_ERR_MSG   512
 
 // Preview Modes
 enum tePreviewMode
 {
-    PREVIEW_NONE=0,            // Preview not calculated yet
+    PREVIEW_NONE=0,          // Preview not calculated yet
     PREVIEW_RGB,
     PREVIEW_YCC,
     PREVIEW_R,
@@ -146,7 +147,7 @@ enum teEdited
     EDITED_YES,
     EDITED_NO,
     EDITED_UNSURE,
-    EDITED_YESPROB,    // Probably edited
+    EDITED_YESPROB,          // Probably edited
 };
 
 enum teDbAdd
@@ -183,3 +184,4 @@ enum teOffsetMode {DEC_OFFSET_START,DEC_OFFSET_SRCH1,DEC_OFFSET_SRCH2,DEC_OFFSET
 #define COACH_DECODE_IDCT_AC _T("Currently decoding high-res view (AC+DC), which can be slow. For faster ")\
     _T("operation, low-resolution image decode can be enabled in [Options->Scan Segment->No IDCT].")
 
+#endif

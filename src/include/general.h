@@ -21,14 +21,14 @@
 
 // General Global Functions
 CString            Dec2Bin(unsigned nVal,unsigned nLen,bool bSpace=true);
-unsigned short    Swap16(unsigned short nVal);
+unsigned short     Swap16(unsigned short nVal);
 CString            Uint2Chars(unsigned nVal);
 CString            Uint2DotByte(unsigned nVal);
-bool            TestBit(unsigned nVal,unsigned nBit);
+bool               TestBit(unsigned nVal,unsigned nBit);
 //CString            ByteStr2Unicode(BYTE* pBuf, unsigned nBufLen);
-bool            Str2Uint32(CString strVal,unsigned nBase,unsigned &nVal);
+bool               Str2Uint32(CString strVal,unsigned nBase,unsigned &nVal);
 
-bool        Uni2AscBuf(PBYTE pBuf,CString strIn,unsigned nMaxBytes,unsigned &nOffsetBytes);
+bool               Uni2AscBuf(PBYTE pBuf,CString strIn,unsigned nMaxBytes,unsigned &nOffsetBytes);
 
 // General Global Constants
 extern const unsigned glb_anZigZag[64];
