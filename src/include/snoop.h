@@ -33,7 +33,7 @@
 // - Note that when the version number is incremented, I need
 //   to also update the corresponding version numbers in the
 //   JPEGsnoop.rc resource under "Version.VS_VERSION_INFO".
-#define VERSION_STR          _T("1.8.0")
+#define VERSION_STR          _T("1.8.2")
 
 // Version number for the database signatures
 // - This version number has been provided in case I decide
